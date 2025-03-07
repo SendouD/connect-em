@@ -1,0 +1,350 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { PlusCircle, ArrowRight, Save, FileText, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { InvestmentForm } from '@/components/investment-form';
+import { FormSelection } from '@/components/form-selection';
+import { ProposalVisibility } from '@/components/proposal-visibility';
+
+interface FormElement {
+  type: string;
+  options?: string[];
+  input?: boolean;
+  label: string;
+  key: string;
+  inputType?: string;
+  placeholder?: string;
+  validate?: {
+    required?: boolean;
+  };
+}
+
+interface FormData {
+  _id: string;
+  name: string;
+  components: FormElement[];
+}
+
+function ProposalPage() {
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [forms, setForms] = useState<FormData[]>([]);
+  const [isLoadingForms, setIsLoadingForms] = useState(true);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<FormData | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  
+  const [proposalData, setProposalData] = useState({
+    investments: [
+      { domain: "", type: "", amount: "" }
+    ],
+    selectedForm: "new",
+    formId: "",
+    formName: "New Form",
+    isPublic: true
+  });
+
+  useEffect(() => {
+    async function fetchForms() {
+      setIsLoadingForms(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/get-all`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        console.log("Fetched forms:", data);
+        setForms(data);
+      } catch (error) {
+        console.error("Error fetching forms:", error);
+      } finally {
+        setIsLoadingForms(false);
+      }
+    }
+    fetchForms();
+  }, []);
+
+  const fetchFormDetails = async (formId: string) => {
+    setIsLoadingPreview(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/${formId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      setSelectedForm(data);
+    } catch (error) {
+      console.error("Error fetching form details:", error);
+      setSelectedForm(null);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handleFormSelection = (value) => {
+    setProposalData({
+      ...proposalData,
+      selectedForm: value,
+      formId: value === "new" ? "" : value
+    });
+    
+    if (value !== "new") {
+      fetchFormDetails(value);
+    } else {
+      setSelectedForm(null);
+    }
+  };
+
+  const handleFormNameChange = (e) => {
+    setProposalData({
+      ...proposalData,
+      formName: e.target.value
+    });
+  };
+
+  const handlePublicToggle = (value) => {
+    setProposalData({
+      ...proposalData,
+      isPublic: value === "public"
+    });
+  };
+
+  const nextStep = () => {
+    setCurrentStep(2);
+  };
+  
+  const prevStep = () => {
+    setCurrentStep(1);
+  };
+
+  useEffect(() => {
+    console.log(proposalData);
+  },[proposalData])
+  
+  const submitProposal = async () => {
+    console.log("Submitting proposal:", proposalData);
+
+    let formId;
+    
+    if (proposalData.selectedForm === "new") {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({name: "New Form", components: []}),
+            credentials: 'include',
+        })
+  
+        if (!response.ok) {
+            throw new Error('Failed to save form')
+        }
+  
+        const savedForm = await response.json()
+        formId = savedForm._id
+  
+      } catch (error) {
+        console.error('Error saving form:', error)
+      }
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/proposal/create`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            investments: proposalData.investments,
+            formId: formId,
+            isPublic: proposalData.isPublic
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert("Proposal submitted successfully!");
+
+          setProposalData({
+            investments: [{ domain: "", type: "", amount: "" }],
+            selectedForm: "new",
+            formId: "",
+            formName: "",
+            isPublic: true
+          });
+          setCurrentStep(1);
+        } else {
+          alert(`Error: ${result.message || "Failed to submit proposal"}`);
+        }
+      } catch (error) {
+        console.error("Error submitting proposal:", error);
+        alert("Failed to submit proposal. Please try again.");
+      }
+
+      router.push(`/proposal-form/${formId}`);
+    } else {
+      try {
+        const response1 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/copy-template/${proposalData.formId}`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const proposalForm = await response1.json();
+        console.log(proposalForm)
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/proposal/create`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            investments: proposalData.investments,
+            formId: proposalForm._id,
+            isPublic: proposalData.isPublic
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert("Proposal submitted successfully!");
+
+          setProposalData({
+            investments: [{ domain: "", type: "", amount: "" }],
+            selectedForm: "new",
+            formId: "",
+            formName: "",
+            isPublic: true
+          });
+          setCurrentStep(1);
+        } else {
+          alert(`Error: ${result.message || "Failed to submit proposal"}`);
+        }
+      } catch (error) {
+        console.error("Error submitting proposal:", error);
+        alert("Failed to submit proposal. Please try again.");
+      }
+    }
+  };
+
+  const isStep1Valid = () => {
+    return proposalData.investments.every(inv => 
+      inv.domain && inv.type && inv.amount && !isNaN(inv.amount)
+    );
+  };
+  
+  const isStep2Valid = () => {
+    if (proposalData.selectedForm === "new") {
+      return proposalData.formName.trim() !== "";
+    }
+    return proposalData.selectedForm !== "new" && proposalData.formId !== "";
+  };
+
+  return (
+    <div className="container mx-auto py-8 max-w-3xl">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-2xl">Create New Proposal</CardTitle>
+          <CardDescription>Complete the two-step process to submit your investment proposal</CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="mb-6">
+            <div className="flex justify-between mb-2">
+              <div className={`flex-1 text-center p-2 rounded-l-md ${currentStep === 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                Step 1: Investment Details
+              </div>
+              <div className={`flex-1 text-center p-2 rounded-r-md ${currentStep === 2 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                Step 2: Form Selection
+              </div>
+            </div>
+          </div>
+          
+          {currentStep === 1 && (
+            <InvestmentForm 
+              proposalData={proposalData}
+              setProposalData={setProposalData}
+            />
+          )}
+          
+          {currentStep === 2 && (
+            <FormSelection 
+              proposalData={proposalData}
+              setProposalData={setProposalData}
+              forms={forms}
+              isLoadingForms={isLoadingForms}
+              handleFormSelection={handleFormSelection}
+              handleFormNameChange={handleFormNameChange}
+              fetchFormDetails={fetchFormDetails}
+              selectedForm={selectedForm}
+              isLoadingPreview={isLoadingPreview}
+              isPreviewOpen={isPreviewOpen}
+              setIsPreviewOpen={setIsPreviewOpen}
+            />
+          )}
+          
+          <ProposalVisibility 
+            isPublic={proposalData.isPublic}
+            handlePublicToggle={handlePublicToggle}
+          />
+        </CardContent>
+        
+        <CardFooter className="flex justify-between">
+          {currentStep === 1 ? (
+            <div></div>
+          ) : (
+            <Button variant="outline" onClick={prevStep}>
+              Back
+            </Button>
+          )}
+          
+          {currentStep === 1 ? (
+            <Button 
+              onClick={nextStep} 
+              disabled={!isStep1Valid()}
+              className="gap-2"
+            >
+              Next <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button 
+              onClick={submitProposal}
+              disabled={!isStep2Valid()}
+              className="gap-2"
+            >
+              {proposalData.selectedForm === "new" ? (
+                <>Continue to Form Builder <ArrowRight className="h-4 w-4" /></>
+              ) : (
+                <>Submit Proposal <Save className="h-4 w-4" /></>
+              )}
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
+export default ProposalPage;
