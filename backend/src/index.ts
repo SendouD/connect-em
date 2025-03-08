@@ -21,6 +21,8 @@ db.once("open", () => {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+console.log(process.env.FRONTEND_URL)
+
 const corsOptions = {
     origin: process.env.FRONTEND_URL,
     credentials: true,
@@ -40,11 +42,12 @@ app.use("/api/proposal", proposalRoutes);
 app.get("/api/test", (req: Request, res: Response) => {
     res.status(200).json({
         message: "Test route",
+        frontend_url: process.env.FRONTEND_URL
     });
 })
 
-// app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 module.exports = app;
