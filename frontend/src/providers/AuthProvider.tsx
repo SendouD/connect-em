@@ -11,16 +11,19 @@ interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
+  authLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
+  authLoading: true,
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
     const cookies = document.cookie.split("; ")
@@ -43,10 +46,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Error decoding JWT:", error)
       }
     }
+    setAuthLoading(false)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, authLoading }}>
       {children}
     </AuthContext.Provider>
   )

@@ -214,3 +214,84 @@ export const getFilledForm = async (req: CustomRequest, res: Response) => {
         res.status(500).json({ message: "Error fetching forms", error });
     }
 }
+
+export const getProposalSubmittedForms = async (req: CustomRequest, res: Response) => {
+    const { proposalId } = req.params;
+
+    try {
+        const submissions = await Submission.find({proposalId});
+        res.status(200).json(submissions);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching forms", error });
+    }
+}
+
+export const rejectApplication = async (req: CustomRequest, res: Response) => {
+    const { applicationId } = req.params;
+    const email = req.email;
+  
+    try {
+        let submission = await Submission.findById(applicationId);
+        
+        if (!submission) {
+            res.status(404).json({ message: "Submission not found" });
+            return;
+        }
+        
+        const proposalId = submission.proposalId;
+        const proposal = await Proposal.findById(proposalId);
+        
+        if (!proposal) {
+            res.status(404).json({ message: "Proposal not found" });
+            return;
+        }
+
+        if (proposal.email !== email) {
+            res.status(403).json({ message: "Unauthorized: You don't have permission to reject this application" });
+            return;
+        }
+        
+        submission.isRejected = true;
+        submission.isApproved = false;
+        await submission.save();
+        
+        res.status(200).json(submission);
+    } catch (error) {
+        res.status(500).json({ message: "Error processing application rejection", error });
+    }
+  };
+  
+export const approveApplication = async (req: CustomRequest, res: Response) => {
+    const { applicationId } = req.params;
+    const email = req.email;
+  
+    try {
+        let submission = await Submission.findById(applicationId);
+
+        if (!submission) {
+            res.status(404).json({ message: "Submission not found" });
+            return;
+        }
+        
+        const proposalId = submission.proposalId;
+        const proposal = await Proposal.findById(proposalId);
+        
+        if (!proposal) {
+            res.status(404).json({ message: "Proposal not found" });
+            return;
+        }
+        
+        if (proposal.email !== email) {
+            res.status(403).json({ message: "Unauthorized: You don't have permission to approve this application" });
+            return;
+        }
+        
+        submission.isApproved = true;
+        submission.isRejected = false;
+        await submission.save();
+        
+        res.status(200).json(submission);
+    } catch (error) {
+        res.status(500).json({ message: "Error processing application approval", error });
+    }
+};

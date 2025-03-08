@@ -51,3 +51,13 @@ export const getAllProposals = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching proposals', error });
     }
 };
+
+export const getInvestorProposals = async (req: CustomRequest, res: Response) => {
+    try {
+        const email = req.email;
+        const proposals = await Proposal.find({ email });
+        res.status(200).json(proposals);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching proposals', error });
+    }
+}

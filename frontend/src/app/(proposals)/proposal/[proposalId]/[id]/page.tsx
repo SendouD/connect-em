@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Loader2 } from 'lucide-react'
+import { useAuth } from "@/providers/AuthProvider"
 
 interface FormElement {
   type: string
@@ -36,8 +37,15 @@ export default function DynamicForm() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { proposalId, id } = useParams()
-  const router = useRouter()
   const [filledData, setFilledData] = useState<any>(null)
+  const { isAuthenticated, authLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/auth")
+    }
+  }, [isAuthenticated, router])
 
   // First fetch the filled form data
   useEffect(() => {

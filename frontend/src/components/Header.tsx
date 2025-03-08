@@ -24,8 +24,9 @@ const Header = () => {
   const isActive = (path: string) => pathname === path
 
   const logout = () => {
-
-  }
+    document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+    window.location.reload();
+  };
 
   return (
     <header className="sticky top-0 z-50 w-[97%] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mx-10">
@@ -84,43 +85,38 @@ const Header = () => {
                 {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                     <ul className="py-1">
-                        <li>
+                        {/* <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">
                                 My Profile
                             </Link>
-                        </li>
-                        <li>
-                            <Link href="/settings" className="block px-4 py-2 hover:bg-gray-100">
-                                Settings
-                            </Link>
-                        </li>
-                        <li>
+                        </li> */}
+                        <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-form" className="block px-4 py-2 hover:bg-gray-100">
                                 Create/Edit forms
                             </Link>
                         </li>
-                        <li>
+                        <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-proposal" className="block px-4 py-2 hover:bg-gray-100">
                                 Create a proposal
                             </Link>
                         </li>
-                        <li>
-                            <Link href="/user-dashboard" className="block px-4 py-2 hover:bg-gray-100">
-                                User dashboard
-                            </Link>
-                        </li>
-                        <li>
+                        <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/investor-dashboard" className="block px-4 py-2 hover:bg-gray-100">
                                 Investor dashboard
                             </Link>
                         </li>
-                        <li>
-                        <button
-                            onClick={logout}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                        >
-                            Log Out
-                        </button>
+                        <li onClick={() => setIsDropdownOpen(false)}>
+                            <Link href="/user-dashboard" className="block px-4 py-2 hover:bg-gray-100">
+                                User dashboard
+                            </Link>
+                        </li>
+                        <li onClick={() => setIsDropdownOpen(false)}>
+                          <button
+                              onClick={logout}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                          >
+                              Log Out
+                          </button>
                         </li>
                     </ul>
                     </div>

@@ -1,5 +1,5 @@
 import express from "express";
-import { copyTemplate, createForm, createProposalForm, getAllForms, getFilledForm, getForm, getProposalForm, submitForm, updateForm, updateProposalForm } from "../controllers/formController";
+import { approveApplication, copyTemplate, createForm, createProposalForm, getAllForms, getFilledForm, getForm, getProposalForm, getProposalSubmittedForms, rejectApplication, submitForm, updateForm, updateProposalForm } from "../controllers/formController";
 
 const router = express.Router();
 
@@ -13,5 +13,8 @@ router.put('/proposal-form', updateProposalForm);
 router.get('/proposal-form/:id', getProposalForm);
 router.post('/copy-template/:id', copyTemplate);
 router.get('/get-filled-form/:proposalId', getFilledForm);
+router.get('/submissions/:proposalId', getProposalSubmittedForms);
+router.put('/submission/reject/:applicationId', rejectApplication);
+router.put('/submission/approve/:applicationId', approveApplication);
 
 export default router;

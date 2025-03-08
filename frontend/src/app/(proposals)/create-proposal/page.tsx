@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { InvestmentForm } from '@/components/investment-form';
 import { FormSelection } from '@/components/form-selection';
 import { ProposalVisibility } from '@/components/proposal-visibility';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface FormElement {
   type: string;
@@ -36,13 +37,20 @@ interface FormData {
 }
 
 function ProposalPage() {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [forms, setForms] = useState<FormData[]>([]);
   const [isLoadingForms, setIsLoadingForms] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState<FormData | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const { isAuthenticated, authLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/auth")
+    }
+  }, [isAuthenticated, router])
   
   const [proposalData, setProposalData] = useState({
     investments: [
