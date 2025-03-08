@@ -18,10 +18,12 @@ export const copyTemplate = async (req: Request, res: Response) => {
 
 export const createPitch = async (req: CustomRequest, res: Response) => {
     const email = req.email;
-    const { formId, submittedData } = req.body
+    const { domain, type, formId, submittedData } = req.body
 
     try {
         const newPitch = new Pitch({
+            domain,
+            type,
             formId,
             email,
             submittedData,
@@ -33,5 +35,24 @@ export const createPitch = async (req: CustomRequest, res: Response) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Error creating pitch", error });
+    }
+}
+
+
+export const getAllPitches = async (req: CustomRequest, res: Response) => {
+    try {
+        const pitches = await Pitch.find();
+        res.status(200).json(pitches);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching pitches", error });
+    }
+}
+
+export const getPitch = async (req: Request, res: Response) => {
+    try {
+        const pitch = await Pitch.findById(req.params.id);
+        res.status(200).json(pitch);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching pitch", error });
     }
 }

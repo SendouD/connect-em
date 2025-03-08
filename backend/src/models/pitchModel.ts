@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 const pitchSchema = new mongoose.Schema(
   {
+    domain: { type: String, required: true },
+    type: { type: String, required: true },
     formId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "PitchForm",

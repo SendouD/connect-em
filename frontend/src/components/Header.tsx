@@ -19,6 +19,7 @@ const Header = () => {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Proposals", href: "/investor-proposals" },
+    { name: "Pitches", href: "/founder-pitches" },
   ]
 
   const isActive = (path: string) => pathname === path
@@ -106,6 +107,11 @@ const Header = () => {
                         <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-proposal" className="block px-4 py-2 hover:bg-gray-100">
                                 Create a proposal
+                            </Link>
+                        </li>
+                        <li onClick={() => setIsDropdownOpen(false)}>
+                            <Link href="/create-pitch" className="block px-4 py-2 hover:bg-gray-100">
+                                Create a pitch
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>

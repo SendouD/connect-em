@@ -13,6 +13,15 @@ import { useAuth } from '@/providers/AuthProvider';
 import axios from 'axios';
 import Image from 'next/image';
 
+// Define domain and type options
+const domainOptions = ["Software Development", "Hardware", "IT Infrastructure", "Research & Development"];
+const typeOptions = {
+  "Software Development": ["Web Development", "Mobile Apps", "Blockchain", "AI/ML", "Cloud Services"],
+  "Hardware": ["IoT Devices", "Computing Hardware", "Network Equipment", "Custom Hardware"],
+  "IT Infrastructure": ["Data Centers", "Cloud Infrastructure", "Security Systems", "Network Infrastructure"],
+  "Research & Development": ["Basic Research", "Applied Research", "Prototyping", "Innovation Labs"],
+};
+
 interface FormElement {
   type: string;
   options?: string[];
@@ -43,6 +52,8 @@ function CreatePitchPage() {
   const [pitchData, setPitchData] = useState({
     formId: "",
     email: "",
+    domain: "",
+    type: ""
   });
   const { isAuthenticated, authLoading, user } = useAuth();
   const router = useRouter();
@@ -51,6 +62,7 @@ function CreatePitchPage() {
   const [fileUploadStatus, setFileUploadStatus] = useState<Record<string, string>>({});
   // Create a reference object for each file input
   const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -81,6 +93,25 @@ function CreatePitchPage() {
     }
     fetchForms();
   }, []);
+
+  // Update available types when domain changes
+  useEffect(() => {
+    if (pitchData.domain && typeOptions[pitchData.domain]) {
+      setAvailableTypes(typeOptions[pitchData.domain]);
+      // Reset the type when domain changes
+      setPitchData(prev => ({ ...prev, type: "" }));
+    } else {
+      setAvailableTypes([]);
+    }
+  }, [pitchData.domain]);
+
+  const handleDomainChange = (domain: string) => {
+    setPitchData(prev => ({ ...prev, domain }));
+  };
+
+  const handleTypeChange = (type: string) => {
+    setPitchData(prev => ({ ...prev, type }));
+  };
 
   const fetchFormDetails = async (formId: string) => {
     try {
@@ -470,6 +501,11 @@ function CreatePitchPage() {
   const isFormValid = () => {
     if (!selectedForm) return false;
     
+    // Check if domain and type are selected
+    if (!pitchData.domain || !pitchData.type) {
+      return false;
+    }
+    
     for (const component of selectedForm.components) {
       if (component.validate?.required && !formData[component.label] && component.type !== "file") {
         return false;
@@ -539,6 +575,8 @@ function CreatePitchPage() {
         body: JSON.stringify({
           formId: newFormId,
           email: pitchData.email || user?.email,
+          domain: pitchData.domain,
+          type: pitchData.type,
           submittedData: submittedData
         }),
       });
@@ -547,7 +585,7 @@ function CreatePitchPage() {
       
       if (response.ok) {
         alert("Pitch submitted successfully!");
-        router.push("/dashboard");
+        router.push("/");
       } else {
         alert(`Error: ${result.message || "Failed to submit pitch"}`);
       }
@@ -568,9 +606,52 @@ function CreatePitchPage() {
         </CardHeader>
         
         <CardContent>
+          {/* Domain and Type Selection */}
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="domain-select" className="block mb-2">
+                Domain <span className="text-red-500">*</span>
+              </Label>
+              <Select onValueChange={handleDomainChange} value={pitchData.domain}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select domain" />
+                </SelectTrigger>
+                <SelectContent>
+                  {domainOptions.map((domain) => (
+                    <SelectItem key={domain} value={domain}>
+                      {domain}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="type-select" className="block mb-2">
+                Type <span className="text-red-500">*</span>
+              </Label>
+              <Select 
+                onValueChange={handleTypeChange} 
+                value={pitchData.type}
+                disabled={!pitchData.domain}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={pitchData.domain ? "Select type" : "Select domain first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        
           <div className="mb-6">
             <Label htmlFor="form-select" className="block mb-2">
-              Select Form
+              Select Form <span className="text-red-500">*</span>
             </Label>
             <Select onValueChange={handleFormChange}>
               <SelectTrigger className="w-full">
