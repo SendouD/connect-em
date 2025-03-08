@@ -22,10 +22,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cors({
-    origin: [`${process.env.FRONTEND_URL}`, "http://localhost:3000"],
-    credentials: true
-}));
+app.use((req: Request, res: Response, next): any => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    next();
+});
 app.use(express.static("public"));
 app.use(cookieParser());
 
@@ -39,8 +44,8 @@ app.get("/api/test", (req: Request, res: Response) => {
     });
 })
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
 
 module.exports = app;
