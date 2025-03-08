@@ -68,7 +68,7 @@ const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, 'secret');
         res.status(200).json({
             username: decoded.username,
             userId: decoded.userId,

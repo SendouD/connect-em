@@ -62,7 +62,7 @@ export const getMe = async (req: Request, res: Response) => {
     }
   
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, 'secret');
         res.status(200).json({
             username: decoded.username,
             userId: decoded.userId,
