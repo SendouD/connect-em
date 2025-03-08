@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { GripVertical, X, Plus, ChevronDown, ChevronUp, Save } from "lucide-react"
+import { GripVertical, X, Plus, ChevronDown, ChevronUp, Save, Image as ImageIcon, FileText } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -38,6 +38,9 @@ interface FormElement {
   tableView?: boolean
   inputType?: string
   validate?: FormElementValidation
+  imageSize?: string
+  fileTypes?: string[]
+  multiple?: boolean
 }
 
 interface FormData {
@@ -66,6 +69,8 @@ const formElements: FormElement[] = [
   { id: "radio", label: "Radio Button", type: "radio", options: ["Option 1", "Option 2"] },
   { id: "checkbox", label: "Checkbox", type: "checkbox", options: ["Option A", "Option B"] },
   { id: "select", label: "Select Box", type: "select", options: ["Choice 1", "Choice 2"] },
+  { id: "file", label: "Image Upload", type: "file", key: "imageupload", fileTypes: ["jpg", "jpeg", "png", "gif"], multiple: false },
+  { id: "document", label: "Document Upload", type: "file", key: "documentupload", fileTypes: ["pdf", "doc", "docx", "txt"], multiple: false },
 ]
 
 const DraggableField: React.FC<FormElement> = ({ id, label }) => {
@@ -117,6 +122,7 @@ const SortableItem: React.FC<{
             <TabsList className="mb-4">
               <TabsTrigger value="basic">Basic</TabsTrigger>
               <TabsTrigger value="validation">Validation</TabsTrigger>
+              {item.type === "file" && <TabsTrigger value="file">File Settings</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="basic">
@@ -155,16 +161,18 @@ const SortableItem: React.FC<{
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor={`${item.id}-default`} className="mb-1.5">
-                    Default Value
-                  </Label>
-                  <Input
-                    id={`${item.id}-default`}
-                    value={item.defaultValue || ""}
-                    onChange={(e) => updateElement(item.id, { defaultValue: e.target.value })}
-                  />
-                </div>
+                {item.type !== "file" && (
+                  <div>
+                    <Label htmlFor={`${item.id}-default`} className="mb-1.5">
+                      Default Value
+                    </Label>
+                    <Input
+                      id={`${item.id}-default`}
+                      value={item.defaultValue || ""}
+                      onChange={(e) => updateElement(item.id, { defaultValue: e.target.value })}
+                    />
+                  </div>
+                )}
 
                 {(item.type === "radio" || item.type === "checkbox" || item.type === "select") && (
                   <div className="space-y-2">
@@ -223,77 +231,174 @@ const SortableItem: React.FC<{
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor={`${item.id}-minLength`} className="mb-1.5">
-                    Minimum Length
-                  </Label>
-                  <Input
-                    id={`${item.id}-minLength`}
-                    value={item.validate?.minLength || ""}
-                    onChange={(e) => {
-                      const validate = { ...(item.validate || defaultValidation), minLength: e.target.value }
-                      updateElement(item.id, { validate })
-                    }}
-                  />
-                </div>
+                {item.type !== "file" && (
+                  <>
+                    <div>
+                      <Label htmlFor={`${item.id}-minLength`} className="mb-1.5">
+                        Minimum Length
+                      </Label>
+                      <Input
+                        id={`${item.id}-minLength`}
+                        value={item.validate?.minLength || ""}
+                        onChange={(e) => {
+                          const validate = { ...(item.validate || defaultValidation), minLength: e.target.value }
+                          updateElement(item.id, { validate })
+                        }}
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor={`${item.id}-maxLength`} className="mb-1.5">
-                    Maximum Length
-                  </Label>
-                  <Input
-                    id={`${item.id}-maxLength`}
-                    value={item.validate?.maxLength || ""}
-                    onChange={(e) => {
-                      const validate = { ...(item.validate || defaultValidation), maxLength: e.target.value }
-                      updateElement(item.id, { validate })
-                    }}
-                  />
-                </div>
+                    <div>
+                      <Label htmlFor={`${item.id}-maxLength`} className="mb-1.5">
+                        Maximum Length
+                      </Label>
+                      <Input
+                        id={`${item.id}-maxLength`}
+                        value={item.validate?.maxLength || ""}
+                        onChange={(e) => {
+                          const validate = { ...(item.validate || defaultValidation), maxLength: e.target.value }
+                          updateElement(item.id, { validate })
+                        }}
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor={`${item.id}-pattern`} className="mb-1.5">
-                    Regular Expression Pattern
-                  </Label>
-                  <Input
-                    id={`${item.id}-pattern`}
-                    value={item.validate?.pattern || ""}
-                    onChange={(e) => {
-                      const validate = { ...(item.validate || defaultValidation), pattern: e.target.value }
-                      updateElement(item.id, { validate })
-                    }}
-                  />
-                </div>
+                    <div>
+                      <Label htmlFor={`${item.id}-pattern`} className="mb-1.5">
+                        Regular Expression Pattern
+                      </Label>
+                      <Input
+                        id={`${item.id}-pattern`}
+                        value={item.validate?.pattern || ""}
+                        onChange={(e) => {
+                          const validate = { ...(item.validate || defaultValidation), pattern: e.target.value }
+                          updateElement(item.id, { validate })
+                        }}
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor={`${item.id}-custom`} className="mb-1.5">
-                    Custom Validation
-                  </Label>
-                  <Textarea
-                    id={`${item.id}-custom`}
-                    value={item.validate?.custom || ""}
-                    onChange={(e) => {
-                      const validate = { ...(item.validate || defaultValidation), custom: e.target.value }
-                      updateElement(item.id, { validate })
-                    }}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">A custom validation JS expression</p>
-                </div>
+                    <div>
+                      <Label htmlFor={`${item.id}-custom`} className="mb-1.5">
+                        Custom Validation
+                      </Label>
+                      <Textarea
+                        id={`${item.id}-custom`}
+                        value={item.validate?.custom || ""}
+                        onChange={(e) => {
+                          const validate = { ...(item.validate || defaultValidation), custom: e.target.value }
+                          updateElement(item.id, { validate })
+                        }}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">A custom validation JS expression</p>
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor={`${item.id}-customPrivate`}>Private Custom Validation</Label>
-                  <Switch
-                    id={`${item.id}-customPrivate`}
-                    checked={item.validate?.customPrivate || false}
-                    onCheckedChange={(checked) => {
-                      const validate = { ...(item.validate || defaultValidation), customPrivate: checked }
-                      updateElement(item.id, { validate })
-                    }}
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor={`${item.id}-customPrivate`}>Private Custom Validation</Label>
+                      <Switch
+                        id={`${item.id}-customPrivate`}
+                        checked={item.validate?.customPrivate || false}
+                        onCheckedChange={(checked) => {
+                          const validate = { ...(item.validate || defaultValidation), customPrivate: checked }
+                          updateElement(item.id, { validate })
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </TabsContent>
+
+            {item.type === "file" && (
+              <TabsContent value="file">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor={`${item.id}-file-types`} className="mb-1.5">
+                      Allowed File Types
+                    </Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(item.fileTypes || []).map((type, index) => (
+                        <div key={index} className="flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm">
+                          {type}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-4 w-4 p-0"
+                            onClick={() =>
+                              updateElement(item.id, { fileTypes: item.fileTypes?.filter((_, i) => i !== index) })
+                            }
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        id={`${item.id}-file-type-input`}
+                        placeholder="Type to add (e.g. jpg, png)"
+                        className="flex-grow"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim().toLowerCase();
+                            if (value && !(item.fileTypes || []).includes(value)) {
+                              updateElement(item.id, {
+                                fileTypes: [...(item.fileTypes || []), value]
+                              });
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const input = document.getElementById(`${item.id}-file-type-input`) as HTMLInputElement;
+                          const value = input.value.trim().toLowerCase();
+                          if (value && !(item.fileTypes || []).includes(value)) {
+                            updateElement(item.id, {
+                              fileTypes: [...(item.fileTypes || []), value]
+                            });
+                            input.value = '';
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">File extensions without dots (e.g. jpg, png)</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`${item.id}-image-size`} className="mb-1.5">
+                      Maximum File Size (MB)
+                    </Label>
+                    <Input
+                      id={`${item.id}-image-size`}
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={item.imageSize || ""}
+                      onChange={(e) => updateElement(item.id, { imageSize: e.target.value })}
+                      placeholder="5"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Maximum file size in megabytes</p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor={`${item.id}-multiple`}>Allow Multiple Files</Label>
+                    <Switch
+                      id={`${item.id}-multiple`}
+                      checked={item.multiple || false}
+                      onCheckedChange={(checked) => {
+                        updateElement(item.id, { multiple: checked })
+                      }}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         ) : (
           <div>
@@ -311,6 +416,23 @@ const SortableItem: React.FC<{
             )}
             {item.type === "password" && (
               <Input type="password" placeholder={item.placeholder || "Enter password"} className="mb-2" />
+            )}
+            {item.type === "file" && (
+              <div className="border-2 border-dashed rounded-md p-4 text-center">
+                {item.key === "imageupload" ? (
+                  <ImageIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                ) : (
+                  <FileText className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {item.placeholder || `Upload ${item.label}`}
+                  {item.fileTypes && item.fileTypes.length > 0 && (
+                    <span className="block mt-1 text-xs">
+                      Allowed: {item.fileTypes.map(t => `.${t}`).join(", ")}
+                    </span>
+                  )}
+                </p>
+              </div>
             )}
 
             {item.type === "radio" && (
@@ -398,11 +520,13 @@ const FormBuilder = () => {
             const newField = {
             ...field,
             id: `${field.id}-${Date.now()}`,
-            key: field.label.toLowerCase().replace(/\s+/g, ""),
+            key: field.key || field.label.toLowerCase().replace(/\s+/g, ""),
             placeholder: "",
             defaultValue: "",
             tableView: true,
             options: field.options ? [...field.options] : undefined,
+            fileTypes: field.fileTypes ? [...field.fileTypes] : undefined,
+            multiple: field.multiple,
             validate: { ...defaultValidation },
             }
 
@@ -435,7 +559,7 @@ const FormBuilder = () => {
             placeholder: ele.placeholder || "",
             prefix: "",
             suffix: "",
-            multiple: false,
+            multiple: ele.multiple || false,
             defaultValue: ele.defaultValue || "",
             protected: false,
             unique: false,
@@ -446,6 +570,8 @@ const FormBuilder = () => {
             lockKey: true,
             isNew: false,
             options: ele.options ? ele.options : [],
+            fileTypes: ele.fileTypes ? ele.fileTypes : [],
+            fileMaxSize: ele.imageSize || "5",
         })),
         }
     }
@@ -580,8 +706,6 @@ const FormBuilder = () => {
                 </DndContext>    
             </div>
         </div>
-
-
     )
 }
 

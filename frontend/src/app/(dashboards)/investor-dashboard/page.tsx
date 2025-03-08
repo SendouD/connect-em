@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
     Card,
     CardHeader,
@@ -20,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader2, ChevronLeft, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/providers/AuthProvider'
 
@@ -167,6 +168,146 @@ export default function InvestorDashboard() {
         return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
     }
 
+    // Helper function to check if a string is an image URL
+    const isImageFile = (filename) => {
+        if (!filename) return false;
+        const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        const extension = filename.split('.').pop().toLowerCase();
+        return extensions.includes(extension);
+    }
+
+    // Helper function to get file type icon
+    const getFileIcon = (filename) => {
+        if (!filename) return <FileText />;
+        const extension = filename.split('.').pop().toLowerCase();
+        
+        const iconMap = {
+            pdf: <FileText className="text-red-500" />,
+            doc: <FileText className="text-blue-500" />,
+            docx: <FileText className="text-blue-500" />,
+            xls: <FileText className="text-green-500" />,
+            xlsx: <FileText className="text-green-500" />,
+            txt: <FileText className="text-gray-500" />,
+            // Add more file types as needed
+        };
+        
+        return iconMap[extension] || <FileText />;
+    }
+
+    // Render form field based on its type and value
+    const renderFormField = (key, value) => {
+        // Skip rendering internal fields
+        if (key.startsWith('_') || key === 'id') return null;
+
+        // Handle image display
+        if (typeof value === 'string' && isImageFile(value)) {
+            return (
+                <div className="mt-2">
+                    <h4 className="text-sm font-medium">{key}</h4>
+                    <div className="mt-2 relative">
+                        <div className="relative h-64 w-full rounded-md overflow-hidden border border-gray-200">
+                            <Image 
+                                src={`${value}`}
+                                alt={key}
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="mt-2"
+                            onClick={() => window.open(`${value}`, '_blank')}
+                        >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            View Full Size
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Handle file link
+        if (typeof value === 'string' && value.includes('.')) {
+            return (
+                <div className="mt-2">
+                    <h4 className="text-sm font-medium">{key}</h4>
+                    <div className="flex items-center mt-2 p-2 border border-gray-200 rounded-md">
+                        {getFileIcon(value)}
+                        <span className="ml-2 text-sm truncate flex-grow">{value}</span>
+                        <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => window.open(`${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/${value}`, '_blank')}
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Handle array of files or images
+        if (Array.isArray(value)) {
+            return (
+                <div className="mt-2">
+                    <h4 className="text-sm font-medium">{key}</h4>
+                    <div className="space-y-2 mt-2">
+                        {value.map((item, index) => {
+                            if (typeof item === 'string' && isImageFile(item)) {
+                                return (
+                                    <div key={index} className="relative h-64 w-full rounded-md overflow-hidden border border-gray-200">
+                                        <Image 
+                                            src={`${item}`}
+                                            alt={`${key}-${index}`}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="absolute bottom-2 right-2 bg-white"
+                                            onClick={() => window.open(`${item}`, '_blank')}
+                                        >
+                                            <ExternalLink className="h-4 w-4 mr-2" />
+                                            View
+                                        </Button>
+                                    </div>
+                                );
+                            } else if (typeof item === 'string' && item.includes('.')) {
+                                return (
+                                    <div key={index} className="flex items-center p-2 border border-gray-200 rounded-md">
+                                        {getFileIcon(item)}
+                                        <span className="ml-2 text-sm truncate flex-grow">{item}</span>
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            onClick={() => window.open(`${item}`, '_blank')}
+                                        >
+                                            <ExternalLink className="h-4 w-4 mr-2" />
+                                            View
+                                        </Button>
+                                    </div>
+                                );
+                            } else {
+                                return <div key={index} className="text-gray-700">{item.toString()}</div>;
+                            }
+                        })}
+                    </div>
+                </div>
+            );
+        }
+
+        // Handle regular text/data
+        return (
+            <div className="border-b border-gray-200 pb-3 last:border-0 last:pb-0">
+                <h4 className="text-sm font-medium">{key}</h4>
+                <p className="mt-1 text-gray-700">{value.toString()}</p>
+            </div>
+        );
+    }
+
     if (loading && !selectedProposal && !selectedApplication) {
         return (
             <div className="flex items-center justify-center h-96">
@@ -238,9 +379,8 @@ export default function InvestorDashboard() {
                                 <h3 className="text-sm font-medium text-gray-500 mb-2">Form Submissions</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                                     {selectedApplication.submittedData && Object.entries(selectedApplication.submittedData).map(([key, value]) => (
-                                        <div key={key} className="border-b border-gray-200 pb-3 last:border-0 last:pb-0">
-                                            <h4 className="text-sm font-medium">{key}</h4>
-                                            <p className="mt-1 text-gray-700">{value.toString()}</p>
+                                        <div key={key} className="space-y-2">
+                                            {renderFormField(key, value)}
                                         </div>
                                     ))}
                                 </div>
@@ -283,28 +423,60 @@ export default function InvestorDashboard() {
                                         <TableHead>Applicant</TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Status</TableHead>
+                                        <TableHead>Media</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {applications.map((application) => (
-                                        <TableRow key={application._id}>
-                                            <TableCell>{application.email}</TableCell>
-                                            <TableCell>
-                                                {new Date(application.createdAt).toLocaleDateString()}
-                                            </TableCell>
-                                            <TableCell>{renderStatus(application)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setSelectedApplication(application)}
-                                                >
-                                                    View Details
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {applications.map((application) => {
+                                        // Count media files (images and documents)
+                                        let mediaCount = 0;
+                                        if (application.submittedData) {
+                                            Object.values(application.submittedData).forEach(value => {
+                                                if (typeof value === 'string' && value.includes('.')) {
+                                                    mediaCount++;
+                                                } else if (Array.isArray(value)) {
+                                                    value.forEach(item => {
+                                                        if (typeof item === 'string' && item.includes('.')) {
+                                                            mediaCount++;
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                        
+                                        return (
+                                            <TableRow key={application._id}>
+                                                <TableCell>{application.email}</TableCell>
+                                                <TableCell>
+                                                    {new Date(application.createdAt).toLocaleDateString()}
+                                                </TableCell>
+                                                <TableCell>{renderStatus(application)}</TableCell>
+                                                <TableCell>
+                                                    {mediaCount > 0 ? (
+                                                        <Badge variant="outline" className="flex items-center gap-1">
+                                                            {isImageFile(Object.values(application.submittedData)[0]) ? 
+                                                                <ImageIcon className="h-3 w-3" /> : 
+                                                                <FileText className="h-3 w-3" />
+                                                            }
+                                                            {mediaCount} {mediaCount === 1 ? 'file' : 'files'}
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-gray-400">No files</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setSelectedApplication(application)}
+                                                    >
+                                                        View Details
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                             </Table>
                         )}

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,10 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload, X, FileIcon, ImageIcon } from 'lucide-react'
 import { useAuth } from "@/providers/AuthProvider"
+import axios from "axios"
+import Image from "next/image"
 
 interface FormElement {
   type: string
@@ -21,6 +23,8 @@ interface FormElement {
   key: string
   inputType?: string
   placeholder?: string
+  multiple?: boolean
+  fileTypes?: string[]
   validate?: {
     required?: boolean
   }
@@ -40,14 +44,17 @@ export default function DynamicForm() {
   const [filledData, setFilledData] = useState<any>(null)
   const { isAuthenticated, authLoading } = useAuth()
   const router = useRouter()
+  const [fileUploads, setFileUploads] = useState<Record<string, File[]>>({})
+  const [fileUrls, setFileUrls] = useState<Record<string, string[]>>({})
+  const [fileUploadStatus, setFileUploadStatus] = useState<Record<string, string>>({})
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/auth")
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, authLoading])
 
-  // First fetch the filled form data
   useEffect(() => {
     async function fetchFilledData() {
       setIsLoading(true);
@@ -68,10 +75,22 @@ export default function DynamicForm() {
   
         if (data && data._id) {
           setFilledData(data);
-          
-          // Set the form values directly from submittedData
+
           if (data.submittedData) {
             setFormValues(data.submittedData);
+            
+            const fileUrlFields: Record<string, string[]> = {};
+            Object.entries(data.submittedData).forEach(([key, value]) => {
+              if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && 
+                  (value[0].startsWith('http://') || value[0].startsWith('https://'))) {
+                fileUrlFields[key] = value;
+              }
+            });
+            
+            if (Object.keys(fileUrlFields).length > 0) {
+              setFileUrls(fileUrlFields);
+            }
+            
             console.log("Setting form values from submittedData:", data.submittedData);
           }
         }
@@ -89,7 +108,6 @@ export default function DynamicForm() {
     }
   }, [proposalId]);   
 
-  // Then fetch the form structure
   useEffect(() => {
     async function fetchFormData() {
       if (!id) return;
@@ -121,30 +139,124 @@ export default function DynamicForm() {
     setFormValues((prev) => ({ ...prev, [key]: value }))
   }
 
+  const handleFileChange = (label: string, event: React.ChangeEvent<HTMLInputElement>, multiple: boolean = false) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    const fileList = multiple ? Array.from(files) : [files[0]];
+    
+    setFileUploads(prev => ({
+      ...prev,
+      [label]: fileList
+    }));
+    
+    const urls = fileList.map(file => URL.createObjectURL(file));
+    setFileUrls(prev => ({
+      ...prev,
+      [label]: urls
+    }));
+  }
+
+  const removeFile = (label: string, index: number) => {
+    setFileUploads(prev => {
+      const updatedFiles = [...prev[label]];
+      updatedFiles.splice(index, 1);
+      return { ...prev, [label]: updatedFiles };
+    });
+    
+    setFileUrls(prev => {
+      const updatedUrls = [...prev[label]];
+      URL.revokeObjectURL(updatedUrls[index]);
+      updatedUrls.splice(index, 1);
+      return { ...prev, [label]: updatedUrls };
+    });
+  }
+
+  const uploadFiles = async () => {
+    const uploadPreset = "hackathonform";
+    const cloudName = "dgjqg72wo";
+    const uploadedUrls: Record<string, string[]> = {};
+    
+    for (const [label, files] of Object.entries(fileUploads)) {
+      setFileUploadStatus(prev => ({ ...prev, [label]: "uploading" }));
+      const urls: string[] = [];
+      
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", uploadPreset);
+        
+        try {
+          const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              withCredentials: false,
+            }
+          );
+          
+          urls.push(response.data.secure_url);
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          setFileUploadStatus(prev => ({ ...prev, [label]: "error" }));
+          return null;
+        }
+      }
+      
+      uploadedUrls[label] = urls;
+      setFileUploadStatus(prev => ({ ...prev, [label]: "complete" }));
+    }
+    
+    return uploadedUrls;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
+      let uploadedFileUrls: any = {};
+      if (Object.keys(fileUploads).length > 0) {
+        uploadedFileUrls = await uploadFiles();
+        if (!uploadedFileUrls) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const submissionData = {
+        ...formValues,
+        ...uploadedFileUrls
+      };
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/submit/${proposalId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formValues),
+        body: JSON.stringify(submissionData),
         credentials: "include",
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to save form")
+        throw new Error("Failed to save form");
       }
 
-      router.push(`/`)
-      console.log("successfully submitted form")
+      router.push(`/`);
+      console.log("successfully submitted form");
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
+    }
+  }
+
+  const triggerFileInput = (label: string) => {
+    if (fileInputRefs.current[label]) {
+      fileInputRefs.current[label]?.click();
     }
   }
 
@@ -168,7 +280,17 @@ export default function DynamicForm() {
     )
   }
 
-  console.log("Current form values:", formValues);
+  const isFileField = (field: FormElement) => {
+    return field.type === "file";
+  }
+
+  const isImageField = (field: FormElement) => {
+    return field.type === "file" && field.key === "imageupload";
+  }
+
+  const isDocumentField = (field: FormElement) => {
+    return field.type === "file" && field.key === "documentupload";
+  }
 
   return (
     <Card className="max-w-xl mx-auto shadow-md mt-10">
@@ -338,11 +460,111 @@ export default function DynamicForm() {
                 </Select>
               )}
 
+              {isFileField(field) && (
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    id={`file-input-${field.label}`}
+                    className="hidden"
+                    accept={field.fileTypes?.map(type => `.${type}`).join(',')}
+                    multiple={field.multiple || false}
+                    onChange={(e) => handleFileChange(field.label, e, field.multiple || false)}
+                    disabled={filledData && filledData.isSubmitted}
+                    ref={(el) => fileInputRefs.current[field.label] = el}
+                  />
+                  
+                  <div 
+                    className={`border-2 border-dashed rounded-md p-4 text-center ${
+                      filledData && filledData.isSubmitted ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+                    }`}
+                    onClick={() => !(filledData && filledData.isSubmitted) && triggerFileInput(field.label)}
+                  >
+                    {isImageField(field) ? (
+                      <ImageIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                    ) : (
+                      <FileIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      {fileUploadStatus[field.label] === "uploading" ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+                        </span>
+                      ) : fileUploadStatus[field.label] === "error" ? (
+                        <span className="text-red-500">Upload failed. Click to try again.</span>
+                      ) : fileUrls[field.label] && fileUrls[field.label].length > 0 ? (
+                        `${fileUrls[field.label].length} file(s) selected`
+                      ) : (
+                        <>
+                          {field.placeholder || `Upload ${field.label}`}
+                          {field.fileTypes && field.fileTypes.length > 0 && (
+                            <span className="block mt-1 text-xs">
+                              Allowed: {field.fileTypes.map(t => `.${t}`).join(", ")}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  
+                  {fileUrls[field.label] && fileUrls[field.label].length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {fileUrls[field.label].map((url, index) => (
+                        <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded">
+                          {isImageField(field) && url.startsWith('blob:') ? (
+                            <div className="w-10 h-10 relative">
+                              <Image
+                                src={url}
+                                alt={`Preview ${index}`}
+                                fill
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          ) : isImageField(field) && (url.startsWith('http://') || url.startsWith('https://')) ? (
+                            <div className="w-10 h-10 relative">
+                              <Image
+                                src={url}
+                                alt={`Uploaded ${index}`}
+                                fill
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          ) : (
+                            <FileIcon className="w-5 h-5 text-blue-500" />
+                          )}
+                          
+                          <span className="text-sm truncate flex-1">
+                            {url.startsWith('blob:') 
+                              ? fileUploads[field.label][index].name 
+                              : url.split('/').pop()}
+                          </span>
+                          
+                          {!(filledData && filledData.isSubmitted) && url.startsWith('blob:') && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFile(field.label, index);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {field.placeholder &&
                 field.inputType !== "password" &&
                 field.type !== "checkbox" &&
                 field.type !== "radio" &&
-                field.type !== "select" && <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>}
+                field.type !== "select" &&
+                field.type !== "file" && <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>}
             </div>
           ))}
         </form>

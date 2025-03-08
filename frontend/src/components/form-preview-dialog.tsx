@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Eye } from "lucide-react"
+import { Eye, FileText, ImageIcon, Upload } from "lucide-react"
 
 export const FormPreviewDialog = ({ isOpen, setIsOpen, form }) => {
   if (!form) return null
@@ -29,17 +29,17 @@ export const FormPreviewDialog = ({ isOpen, setIsOpen, form }) => {
                 {field.validate?.required && <span className="text-destructive ml-1">*</span>}
               </Label>
 
-              {field.key === "textfield" && <Input type="text" disabled placeholder={field.placeholder || ""} />}
+              {field.type === "textfield" && <Input type="text" disabled placeholder={field.placeholder || ""} />}
 
-              {field.key === "textarea" && (
+              {field.type === "textarea" && (
                 <Textarea disabled placeholder={field.placeholder || ""} className="min-h-[120px]" />
               )}
 
               {field.inputType === "date" && <Input type="date" disabled />}
 
-              {field.key === "number" && <Input type="number" disabled placeholder={field.placeholder || ""} />}
+              {field.type === "number" && <Input type="number" disabled placeholder={field.placeholder || ""} />}
 
-              {field.key === "password" && <Input type="password" disabled placeholder="••••••" />}
+              {field.type === "password" && <Input type="password" disabled placeholder="••••••" />}
 
               {field.type === "checkbox" && (
                 <div className="flex items-center space-x-2 pt-1">
@@ -67,11 +67,72 @@ export const FormPreviewDialog = ({ isOpen, setIsOpen, form }) => {
                 </Select>
               )}
 
+              {field.type === "file" && (
+                <div className="border-2 border-dashed rounded-md p-6 text-center">
+                  {field.key === "imageupload" ? (
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="bg-muted/40 rounded-full p-3">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {field.placeholder || `Upload ${field.label}`}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-1">
+                          {field.multiple ? 'Drag and drop multiple images or click to browse' : 'Drag and drop an image or click to browse'}
+                        </span>
+                        {field.fileTypes && field.fileTypes.length > 0 && (
+                          <span className="text-xs text-muted-foreground mt-1">
+                            Allowed formats: {field.fileTypes.map(t => `.${t}`).join(", ")}
+                          </span>
+                        )}
+                        {field.imageSize && (
+                          <span className="text-xs text-muted-foreground">
+                            Maximum size: {field.imageSize} MB
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="bg-muted/40 rounded-full p-3">
+                        <FileText className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {field.placeholder || `Upload ${field.label}`}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-1">
+                          {field.multiple ? 'Drag and drop multiple files or click to browse' : 'Drag and drop a file or click to browse'}
+                        </span>
+                        {field.fileTypes && field.fileTypes.length > 0 && (
+                          <span className="text-xs text-muted-foreground mt-1">
+                            Allowed formats: {field.fileTypes.map(t => `.${t}`).join(", ")}
+                          </span>
+                        )}
+                        {field.imageSize && (
+                          <span className="text-xs text-muted-foreground">
+                            Maximum size: {field.imageSize} MB
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <Button variant="outline" className="mt-4" disabled>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Browse
+                  </Button>
+                </div>
+              )}
+
               {field.placeholder &&
                 field.inputType !== "password" &&
                 field.type !== "checkbox" &&
                 field.type !== "radio" &&
-                field.type !== "select" && <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>}
+                field.type !== "select" &&
+                field.type !== "file" && (
+                  <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>
+                )}
             </div>
           ))}
         </div>
@@ -79,4 +140,3 @@ export const FormPreviewDialog = ({ isOpen, setIsOpen, form }) => {
     </Dialog>
   )
 }
-

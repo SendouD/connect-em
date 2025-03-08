@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/formRoutes";
 import userAuth from "./middlewares/authMiddleware";
 import proposalRoutes from "./routes/proposalRoutes";
+import pitchRoutes from "./routes/pitchRoutes";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/form", userAuth, userRoutes);
 app.use("/api/proposal", proposalRoutes);
+app.use("/api/pitch", pitchRoutes);
 
 app.get("/api/test", (req: Request, res: Response) => {
     res.status(200).json({

@@ -61,6 +61,7 @@ export default function AuthForm() {
         console.log("Login successful:", data);
         setSignInSuccess("Login successful!");
         router.push('/');
+        window.location.reload();
       } else {
         setSignInError("Unexpected server response.");
       }

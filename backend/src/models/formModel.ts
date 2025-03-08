@@ -21,6 +21,7 @@ const ComponentSchema = new mongoose.Schema({
     lockKey: { type: Boolean, default: false },
     isNew: { type: Boolean, default: false },
     options: { type: [String], default: [] },
+    urls: {type:[String], default: []}
 });
 
 const FormSchema = new mongoose.Schema({
@@ -31,3 +32,4 @@ const FormSchema = new mongoose.Schema({
 
 export const Form = mongoose.model("Form", FormSchema);
 export const ProposalForm = mongoose.model("ProposalForm", FormSchema);
+export const PitchForm = mongoose.model("PitchForm", FormSchema);

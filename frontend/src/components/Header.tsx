@@ -18,7 +18,7 @@ const Header = () => {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "proposals", href: "/investor-proposals" },
+    { name: "Proposals", href: "/investor-proposals" },
   ]
 
   const isActive = (path: string) => pathname === path
