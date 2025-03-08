@@ -21,16 +21,16 @@ db.once("open", () => {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const corsOptions = {
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    httpOnly: true ,
+    secure: true,
+    sameSite:'none',
+};  
+
 app.use(express.json());
-app.use(cors());
-app.options('*',cors());
-var allowCrossDomain = function(req: Request, res: Response, next: NextFunction) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, PUT');
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();  
-}
-app.use(allowCrossDomain);
+app.use(cors(corsOptions));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
