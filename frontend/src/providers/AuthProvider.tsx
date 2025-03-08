@@ -25,36 +25,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
-  useEffect(() => {
-    const cookies = document.cookie.split("; ")
-    console.log(cookies);
-    const jwtCookie = cookies.find((row) => row.startsWith("jwt="))
+  const fetchUser = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
+        method: "GET",
+        credentials: "include", 
+      });
 
-    if (jwtCookie) {
-      const token = jwtCookie.split("=")[1]
-      try {
-        const base64Url = token.split(".")[1]
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
-        const decodedPayload = JSON.parse(atob(base64))
-
-        setUser({
-          username: decodedPayload.username,
-          userId: decodedPayload.userId,
-          email: decodedPayload.email,
-        })
-        setIsAuthenticated(true)
-      } catch (error) {
-        console.error("Error decoding JWT:", error)
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setAuthLoading(false);
     }
-    setAuthLoading(false)
-  }, [])
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, authLoading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);

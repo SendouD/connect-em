@@ -53,3 +53,24 @@ export const signin = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error fetching users", error });
     }
 };
+
+export const getMe = async (req: Request, res: Response) => {
+    const token = req.cookies.jwt;
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+  
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({
+            username: decoded.username,
+            userId: decoded.userId,
+            email: decoded.email
+        });
+        return;
+    } catch (error) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+}
