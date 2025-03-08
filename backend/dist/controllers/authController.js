@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMe = exports.signin = exports.signup = void 0;
+exports.logout = exports.getMe = exports.signin = exports.signup = void 0;
 const userModel_1 = __importDefault(require("../models/userModel"));
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -82,3 +82,12 @@ const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getMe = getMe;
+const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
+    res.status(200).json({ message: 'Logged out successfully' });
+});
+exports.logout = logout;

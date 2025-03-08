@@ -10,4 +10,5 @@ const router = express_1.default.Router();
 router.post("/signin", authController_1.signin);
 router.post("/signup", authController_1.signup);
 router.get('/me', authMiddleware_1.default, authController_1.getMe);
+router.post('/logout', authMiddleware_1.default, authController_1.logout);
 exports.default = router;
