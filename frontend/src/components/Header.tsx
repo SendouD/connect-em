@@ -23,11 +23,19 @@ const Header = () => {
 
   const isActive = (path: string) => pathname === path
 
-  const logout = () => {
-    document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-    window.location.reload();
+  const logout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
+  
+      window.location.reload();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
-
+  
   return (
     <header className="sticky top-0 z-50 w-[97%] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mx-10">
       <div className="flex h-16 items-center justify-between">

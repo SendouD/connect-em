@@ -74,3 +74,13 @@ export const getMe = async (req: Request, res: Response) => {
         return;
     }
 }
+
+export const logout = async (req: Request, res: Response) => {
+    res.clearCookie('jwt', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
+    
+    res.status(200).json({ message: 'Logged out successfully' });
+}
