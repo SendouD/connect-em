@@ -44,7 +44,6 @@ export const signin = async (req: Request, res: Response) => {
             httpOnly:true,
             secure:true,
             sameSite:'none',
-            domain: '.vercel.app',
             maxAge: 1000 * 60 * 60 * 24,
         }).status(200).json({ message: 'Success', token });
         

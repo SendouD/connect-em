@@ -51,7 +51,6 @@ const signin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
-            domain: '.vercel.app',
             maxAge: 1000 * 60 * 60 * 24,
         }).status(200).json({ message: 'Success', token });
         return;
