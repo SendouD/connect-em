@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser"
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -22,16 +22,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use((req: Request, res: Response, next): any => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-    next();
-});
-app.use(express.static("public"));
+app.use(cors());
+app.options('*',cors());
+var allowCrossDomain = function(req: Request, res: Response, next: NextFunction) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, PUT');
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();  
+}
+app.use(allowCrossDomain);
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
