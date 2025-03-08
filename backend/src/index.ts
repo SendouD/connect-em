@@ -42,7 +42,8 @@ app.use("/api/proposal", proposalRoutes);
 app.get("/api/test", (req: Request, res: Response) => {
     res.status(200).json({
         message: "Test route",
-        frontend_url: process.env.FRONTEND_URL
+        frontend_url: process.env.FRONTEND_URL,
+        temp: "hello"
     });
 })
 
