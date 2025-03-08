@@ -21,8 +21,6 @@ db.once("open", () => {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log(process.env.FRONTEND_URL)
-
 const corsOptions = {
     origin: process.env.FRONTEND_URL,
     credentials: true,
@@ -46,8 +44,8 @@ app.get("/api/test", (req: Request, res: Response) => {
     });
 })
 
-// app.listen(PORT, () => {
-//     console.log(`Server is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 module.exports = app;

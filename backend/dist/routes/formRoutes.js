@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const formController_1 = require("../controllers/formController");
+const router = express_1.default.Router();
+router.post('/', formController_1.createForm);
+router.put('/', formController_1.updateForm);
+router.get('/get-all', formController_1.getAllForms);
+router.get('/user-submitted-forms', formController_1.userSubmittedForms);
+router.get('/:id', formController_1.getForm);
+router.post('/submit/:proposalId', formController_1.submitForm);
+router.post('/proposal-form', formController_1.createProposalForm);
+router.put('/proposal-form', formController_1.updateProposalForm);
+router.get('/proposal-form/:id', formController_1.getProposalForm);
+router.post('/copy-template/:id', formController_1.copyTemplate);
+router.get('/get-filled-form/:proposalId', formController_1.getFilledForm);
+router.get('/submissions/:proposalId', formController_1.getProposalSubmittedForms);
+router.put('/submission/reject/:applicationId', formController_1.rejectApplication);
+router.put('/submission/approve/:applicationId', formController_1.approveApplication);
+exports.default = router;
