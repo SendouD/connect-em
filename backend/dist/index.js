@@ -12,6 +12,7 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const formRoutes_1 = __importDefault(require("./routes/formRoutes"));
 const authMiddleware_1 = __importDefault(require("./middlewares/authMiddleware"));
 const proposalRoutes_1 = __importDefault(require("./routes/proposalRoutes"));
+const pitchRoutes_1 = __importDefault(require("./routes/pitchRoutes"));
 dotenv_1.default.config();
 mongoose_1.default.connect(process.env.MONGO_URI || "");
 const db = mongoose_1.default.connection;
@@ -31,6 +32,7 @@ app.use((0, cookie_parser_1.default)());
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/form", authMiddleware_1.default, formRoutes_1.default);
 app.use("/api/proposal", proposalRoutes_1.default);
+app.use("/api/pitch", pitchRoutes_1.default);
 app.get("/api/test", (req, res) => {
     res.status(200).json({
         message: "Test route",

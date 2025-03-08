@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProposalForm = exports.Form = void 0;
+exports.PitchForm = exports.ProposalForm = exports.Form = void 0;
 const mongoose = require("mongoose");
 const ComponentSchema = new mongoose.Schema({
     input: { type: Boolean, required: true },
@@ -23,6 +23,7 @@ const ComponentSchema = new mongoose.Schema({
     lockKey: { type: Boolean, default: false },
     isNew: { type: Boolean, default: false },
     options: { type: [String], default: [] },
+    urls: { type: [String], default: [] }
 });
 const FormSchema = new mongoose.Schema({
     email: { type: String, required: true },
@@ -31,3 +32,4 @@ const FormSchema = new mongoose.Schema({
 }, { timestamps: true });
 exports.Form = mongoose.model("Form", FormSchema);
 exports.ProposalForm = mongoose.model("ProposalForm", FormSchema);
+exports.PitchForm = mongoose.model("PitchForm", FormSchema);
