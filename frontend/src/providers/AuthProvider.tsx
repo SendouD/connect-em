@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const cookies = document.cookie.split("; ")
+    console.log(cookies);
     const jwtCookie = cookies.find((row) => row.startsWith("jwt="))
 
     if (jwtCookie) {

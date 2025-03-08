@@ -24,9 +24,6 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
     origin: process.env.FRONTEND_URL,
     credentials: true,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
 };
 app.use(express_1.default.json());
 app.use((0, cors_1.default)(corsOptions));
