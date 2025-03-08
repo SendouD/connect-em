@@ -45,6 +45,7 @@ export const signin = async (req: Request, res: Response) => {
             secure:true,
             sameSite:'none',
             maxAge: 1000 * 60 * 60 * 24,
+            partitioned: true
         }).status(200).json({ message: 'Success', token });
         
         return;
