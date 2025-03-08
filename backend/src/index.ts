@@ -24,6 +24,9 @@ const PORT = process.env.PORT || 5000;
 const corsOptions = {
     origin: process.env.FRONTEND_URL,
     credentials: true,
+    httpOnly: true ,
+    secure: true,
+    sameSite:'none',
 };  
 
 app.use(express.json());
@@ -41,8 +44,8 @@ app.get("/api/test", (req: Request, res: Response) => {
     });
 })
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
 
 module.exports = app;
