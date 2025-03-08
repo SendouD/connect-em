@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signin = exports.signup = void 0;
+exports.getMe = exports.signin = exports.signup = void 0;
 const userModel_1 = __importDefault(require("../models/userModel"));
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -51,8 +51,8 @@ const signin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
+            domain: '.vercel.app',
             maxAge: 1000 * 60 * 60 * 24,
-            partitioned: true
         }).status(200).json({ message: 'Success', token });
         return;
     }
@@ -61,3 +61,24 @@ const signin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.signin = signin;
+const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const token = req.cookies.jwt;
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.status(200).json({
+            username: decoded.username,
+            userId: decoded.userId,
+            email: decoded.email
+        });
+        return;
+    }
+    catch (error) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+});
+exports.getMe = getMe;
