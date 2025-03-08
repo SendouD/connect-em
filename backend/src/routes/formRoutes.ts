@@ -1,11 +1,12 @@
 import express from "express";
-import { approveApplication, copyTemplate, createForm, createProposalForm, getAllForms, getFilledForm, getForm, getProposalForm, getProposalSubmittedForms, rejectApplication, submitForm, updateForm, updateProposalForm } from "../controllers/formController";
+import { approveApplication, copyTemplate, createForm, createProposalForm, getAllForms, getFilledForm, getForm, getProposalForm, getProposalSubmittedForms, rejectApplication, submitForm, updateForm, updateProposalForm, userSubmittedForms } from "../controllers/formController";
 
 const router = express.Router();
 
 router.post('/', createForm);
 router.put('/', updateForm);
 router.get('/get-all', getAllForms);
+router.get('/user-submitted-forms', userSubmittedForms);
 router.get('/:id', getForm);
 router.post('/submit/:proposalId', submitForm);
 router.post('/proposal-form', createProposalForm);

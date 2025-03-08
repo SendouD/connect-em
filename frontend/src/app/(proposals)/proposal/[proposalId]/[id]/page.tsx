@@ -65,7 +65,6 @@ export default function DynamicForm() {
         }
   
         let data = await response.json();
-        console.log("Filled form data:", data);
   
         if (data && data._id) {
           setFilledData(data);

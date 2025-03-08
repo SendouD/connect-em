@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Form, ProposalForm } from "../models/formModel";
 import Submission from "../models/formSubmissionModel";
 import Proposal from "../models/proposalModel";
+import User from "../models/userModel";
 
 interface CustomRequest extends Request {
     email?: string;
@@ -110,12 +111,44 @@ export const submitForm = async (req: CustomRequest, res: Response) => {
         });
 
         await submission.save();
+        const user=await User.findOne({email});
+        if(!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+        user.proposals.push(proposalId);
+        await user.save();
 
         res.status(201).json({ message: "Form submitted successfully", submission });
     } catch (error) {
         res.status(500).json({ message: "Error submitting form", error });
     }
 };
+export const userSubmittedForms=async (req: CustomRequest, res:Response)=>{
+    const email = req.email
+    const user = await User.findOne({email});
+    if(!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+    }
+    const proposalIds = user.proposals;
+    if (!proposalIds.length) {
+        res.status(200).json({ proposals: [] });
+        return;
+    }
+    const userProposals = await Promise.all(
+        proposalIds.map(async (proposalId) => {
+          try {
+            const proposal = await Proposal.findById(proposalId);
+            return proposal;
+          } catch (error) {
+            console.error(`Error fetching proposal ${proposalId}:`, error);
+            return null;
+          }
+        })
+      );
+      res.status(200).json({ proposals: userProposals });
+}
 
 export const getAllForms = async (req: CustomRequest, res: Response) => {
     const email = req.email
