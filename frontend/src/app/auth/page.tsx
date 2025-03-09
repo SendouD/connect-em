@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function AuthForm() {
   const emailSignInRef = useRef<HTMLInputElement>(null);
@@ -27,6 +28,8 @@ export default function AuthForm() {
   const [activeTab, setActiveTab] = useState("signin");
 
   const router = useRouter();
+
+  const { setIsAuthenticated } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +63,8 @@ export default function AuthForm() {
       if (data) {
         console.log("Login successful:", data);
         setSignInSuccess("Login successful!");
+        setIsAuthenticated(true)
         router.push('/');
-        window.location.reload();
       } else {
         setSignInError("Unexpected server response.");
       }

@@ -12,12 +12,14 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   authLoading: boolean
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   authLoading: true,
+  setIsAuthenticated: () => {}
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -52,10 +54,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, authLoading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, authLoading, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
