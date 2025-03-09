@@ -13,6 +13,8 @@ const pitchSchema = new mongoose_1.default.Schema({
         required: true,
     },
     email: { type: String, required: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     submittedData: {
         type: Object,
         default: {},

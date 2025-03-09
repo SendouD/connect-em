@@ -10,4 +10,5 @@ const router = express_1.default.Router();
 router.post('/create', authMiddleware_1.default, proposalController_1.createProposal);
 router.get('/get-all', proposalController_1.getAllProposals);
 router.get('/investor', authMiddleware_1.default, proposalController_1.getInvestorProposals);
+router.get('/:proposalId', proposalController_1.getProposal);
 exports.default = router;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.investorInterest = exports.getPitch = exports.getAllPitches = exports.createPitch = exports.copyTemplate = void 0;
+exports.investorInterest = exports.fetchPitches = exports.getPitch = exports.getAllPitches = exports.createPitch = exports.copyTemplate = void 0;
 const pitchModel_1 = __importDefault(require("../models/pitchModel"));
 const formModel_1 = require("../models/formModel");
 const copyTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,13 +28,15 @@ const copyTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.copyTemplate = copyTemplate;
 const createPitch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const email = req.email;
-    const { domain, type, formId, submittedData } = req.body;
+    const { domain, type, formId, submittedData, title, description } = req.body;
     try {
         const newPitch = new pitchModel_1.default({
             domain,
             type,
             formId,
             email,
+            title,
+            description,
             submittedData,
         });
         yield newPitch.save();
@@ -66,6 +68,20 @@ const getPitch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getPitch = getPitch;
+const fetchPitches = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('hitt');
+    try {
+        const email = req.email;
+        console.log(email);
+        const pitches = yield pitchModel_1.default.find({ email });
+        res.status(200).json(pitches);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error petch pitches", error });
+    }
+});
+exports.fetchPitches = fetchPitches;
 const investorInterest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const email = req.email;

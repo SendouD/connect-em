@@ -10,6 +10,7 @@ const router = express_1.default.Router();
 router.post('/copy-template/:id', authMiddleware_1.default, pitchController_1.copyTemplate);
 router.post('/create', authMiddleware_1.default, pitchController_1.createPitch);
 router.get('/get-all', pitchController_1.getAllPitches);
+router.get('/get-user', authMiddleware_1.default, pitchController_1.fetchPitches);
 router.get('/:id', pitchController_1.getPitch);
 router.patch('/investor-interest/:id', authMiddleware_1.default, pitchController_1.investorInterest);
 exports.default = router;

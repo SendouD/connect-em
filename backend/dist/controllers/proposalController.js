@@ -12,11 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInvestorProposals = exports.getAllProposals = exports.createProposal = void 0;
+exports.getProposal = exports.getInvestorProposals = exports.getAllProposals = exports.createProposal = void 0;
 const proposalModel_1 = __importDefault(require("../models/proposalModel"));
 const createProposal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { investments, formId, isPublic } = req.body;
+        const { investments, formId, isPublic, title, description } = req.body;
         const email = req.email;
         console.log(investments, formId, isPublic, email);
         if (!Array.isArray(investments)) {
@@ -27,6 +27,8 @@ const createProposal = (req, res) => __awaiter(void 0, void 0, void 0, function*
         for (const investment of investments) {
             const { domain, type, amount } = investment;
             const newProposal = new proposalModel_1.default({
+                title,
+                description,
                 domain,
                 type,
                 amount,
@@ -66,3 +68,13 @@ const getInvestorProposals = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.getInvestorProposals = getInvestorProposals;
+const getProposal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const proposal = yield proposalModel_1.default.findById(req.params.proposalId);
+        res.status(200).json(proposal);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error fetching proposal', error });
+    }
+});
+exports.getProposal = getProposal;
