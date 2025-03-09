@@ -513,10 +513,6 @@ const FormBuilder = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [formId, setFormId] = useState<string | undefined>(undefined)
 
-  useEffect(() => {
-    console.log("Form elements:", elements)
-  }, [elements])
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) return

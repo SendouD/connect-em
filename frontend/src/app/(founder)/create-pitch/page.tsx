@@ -12,8 +12,8 @@ import { Save, Loader2, X, FileIcon, ImageIcon, Calendar } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import axios from 'axios';
 import Image from 'next/image';
+import ProtectedRoute from '@/components/routes/ProtectedRoute';
 
-// Define domain and type options
 const domainOptions = ["Software Development", "Hardware", "IT Infrastructure", "Research & Development"];
 const typeOptions = {
   "Software Development": ["Web Development", "Mobile Apps", "Blockchain", "AI/ML", "Cloud Services"],
@@ -49,14 +49,7 @@ function CreatePitchPage() {
   const [isLoadingForms, setIsLoadingForms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [pitchData, setPitchData] = useState({
-    formId: "",
-    email: "",
-    domain: "",
-    type: "",
-    title: "",
-    description: ""
-  });
+  const [pitchData, setPitchData] = useState({ formId: "", email: "", domain: "", type: "", title: "", description: "" });
   const { isAuthenticated, authLoading, user } = useAuth();
   const router = useRouter();
   const [fileUploads, setFileUploads] = useState<Record<string, File[]>>({});
@@ -65,12 +58,10 @@ function CreatePitchPage() {
   // Create a reference object for each file input
   const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(user)
-    if (!authLoading && !isAuthenticated) {
-      router.push("/auth");
-    } else if (!authLoading && isAuthenticated && user?.email) {
+    if (!authLoading && isAuthenticated && user?.email) {
       setPitchData(prev => ({ ...prev, email: user.email }));
     }
   }, [isAuthenticated, authLoading, router, user]);
@@ -78,6 +69,7 @@ function CreatePitchPage() {
   useEffect(() => {
     async function fetchForms() {
       setIsLoadingForms(true);
+      setFetchError(null);
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/get-all`, {
           method: "GET",
@@ -86,10 +78,25 @@ function CreatePitchPage() {
             "Content-Type": "application/json",
           },
         });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch forms: ${response.statusText}`);
+        }
         const data = await response.json();
-        setForms(data);
+        // Ensure that data is an array before setting it
+        if (Array.isArray(data)) {
+          setForms(data);
+        } else if (data && data.forms && Array.isArray(data.forms)) {
+          // If the API returns an object with a forms property that is an array
+          setForms(data.forms);
+        } else {
+          console.error("Unexpected response format:", data);
+          setFetchError("Invalid response format. Expected an array of forms.");
+          setForms([]);
+        }
       } catch (error) {
         console.error("Error fetching forms:", error);
+        setFetchError(error instanceof Error ? error.message : "Failed to fetch forms");
+        setForms([]);
       } finally {
         setIsLoadingForms(false);
       }
@@ -612,145 +619,162 @@ function CreatePitchPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Create New Pitch</CardTitle>
-          <CardDescription>Select a form and provide details for your pitch</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          {/* Title and Description Fields */}
-          <div className="mb-6 space-y-4">
-            <div>
-              <Label htmlFor="pitch-title" className="block mb-2">
-                Pitch Title <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="pitch-title"
-                type="text"
-                placeholder="Enter a title for your pitch"
-                value={pitchData.title}
-                onChange={(e) => handlePitchDataChange('title', e.target.value)}
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="pitch-description" className="block mb-2">
-                Pitch Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                id="pitch-description"
-                placeholder="Provide a brief description of your pitch"
-                value={pitchData.description}
-                onChange={(e) => handlePitchDataChange('description', e.target.value)}
-                required
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-
-          {/* Domain and Type Selection */}
-          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="domain-select" className="block mb-2">
-                Domain <span className="text-red-500">*</span>
-              </Label>
-              <Select onValueChange={handleDomainChange} value={pitchData.domain}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select domain" />
-                </SelectTrigger>
-                <SelectContent>
-                  {domainOptions.map((domain) => (
-                    <SelectItem key={domain} value={domain}>
-                      {domain}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="type-select" className="block mb-2">
-                Type <span className="text-red-500">*</span>
-              </Label>
-              <Select 
-                onValueChange={handleTypeChange} 
-                value={pitchData.type}
-                disabled={!pitchData.domain}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={pitchData.domain ? "Select type" : "Select domain first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        
-          <div className="mb-6">
-            <Label htmlFor="form-select" className="block mb-2">
-              Select Form <span className="text-red-500">*</span>
-            </Label>
-            <Select onValueChange={handleFormChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a form template" />
-              </SelectTrigger>
-              <SelectContent>
-                {isLoadingForms ? (
-                  <SelectItem value="loading" disabled>
-                    <Loader2 className="h-4 w-4 mr-2 inline animate-spin" />
-                    Loading forms...
-                  </SelectItem>
-                ) : (
-                  forms.map((form) => (
-                    <SelectItem key={form._id} value={form._id}>
-                      {form.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+    <ProtectedRoute>
+      <div className="container mx-auto py-8">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl">Create New Pitch</CardTitle>
+            <CardDescription>Select a form and provide details for your pitch</CardDescription>
+          </CardHeader>
           
-          {selectedForm && (
-            <div className="space-y-4">
-              {selectedForm.components.map((component, index) => 
-                renderFormElement(component, index)
+          <CardContent>
+            {/* Title and Description Fields */}
+            <div className="mb-6 space-y-4">
+              <div>
+                <Label htmlFor="pitch-title" className="block mb-2">
+                  Pitch Title <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="pitch-title"
+                  type="text"
+                  placeholder="Enter a title for your pitch"
+                  value={pitchData.title}
+                  onChange={(e) => handlePitchDataChange('title', e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="pitch-description" className="block mb-2">
+                  Pitch Description <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="pitch-description"
+                  placeholder="Provide a brief description of your pitch"
+                  value={pitchData.description}
+                  onChange={(e) => handlePitchDataChange('description', e.target.value)}
+                  required
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+
+            {/* Domain and Type Selection */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="domain-select" className="block mb-2">
+                  Domain <span className="text-red-500">*</span>
+                </Label>
+                <Select onValueChange={handleDomainChange} value={pitchData.domain}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {domainOptions.map((domain) => (
+                      <SelectItem key={domain} value={domain}>
+                        {domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="type-select" className="block mb-2">
+                  Type <span className="text-red-500">*</span>
+                </Label>
+                <Select 
+                  onValueChange={handleTypeChange} 
+                  value={pitchData.type}
+                  disabled={!pitchData.domain}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={pitchData.domain ? "Select type" : "Select domain first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          
+            <div className="mb-6">
+              <Label htmlFor="form-select" className="block mb-2">
+                Select Form <span className="text-red-500">*</span>
+              </Label>
+              <Select onValueChange={handleFormChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose a form template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingForms ? (
+                    <SelectItem value="loading" disabled>
+                      <Loader2 className="h-4 w-4 mr-2 inline animate-spin" />
+                      Loading forms...
+                    </SelectItem>
+                  ) : fetchError ? (
+                    <SelectItem value="error" disabled>
+                      <X className="h-4 w-4 mr-2 inline text-red-500" />
+                      Error loading forms
+                    </SelectItem>
+                  ) : forms.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No forms available
+                    </SelectItem>
+                  ) : (
+                    // Ensure forms is an array before mapping
+                    Array.isArray(forms) && forms.map((form) => (
+                      <SelectItem key={form._id} value={form._id}>
+                        {form.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {fetchError && (
+                <p className="text-sm text-red-500 mt-1">
+                  {fetchError}
+                </p>
               )}
             </div>
-          )}
-        </CardContent>
-        
-        <CardFooter className="flex justify-end border-t p-4">
-          {selectedForm && (
-            <Button 
-              onClick={submitPitch} 
-              disabled={isSubmitting || !isFormValid()}
-              className="px-6"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Submit Pitch 
-                </>
-              )}
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+            
+            {selectedForm && (
+              <div className="space-y-4">
+                {selectedForm.components.map((component, index) => 
+                  renderFormElement(component, index)
+                )}
+              </div>
+            )}
+          </CardContent>
+          
+          <CardFooter className="flex justify-end border-t p-4">
+            {selectedForm && (
+              <Button 
+                onClick={submitPitch} 
+                disabled={isSubmitting || !isFormValid()}
+                className="px-6"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Submit Pitch 
+                  </>
+                )}
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    </ProtectedRoute>
   );
 }
 

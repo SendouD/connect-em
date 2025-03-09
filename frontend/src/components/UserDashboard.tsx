@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Mail } from "lucide-react"
 import { format } from "date-fns"
 
-// Define TypeScript interface based on your Proposal schema
 interface Proposal {
   _id: string;
   email: string;

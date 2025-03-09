@@ -42,8 +42,6 @@ interface InvestorsInterestedProps {
   isInterested: boolean;
 }
 
-
-
 interface Pitch {
   _id: string;
   domain: string;
@@ -82,7 +80,6 @@ export default function PitchDetailPage() {
         if (response.ok) {
           setPitch(data);
           console.log(data)
-          // Check if the current user's email is in the investors array
            if (!authLoading && isAuthenticated && user?.email)  {
             console.log("hitt")
             console.log(data.investors.includes(user.email));

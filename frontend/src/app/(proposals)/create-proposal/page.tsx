@@ -16,6 +16,7 @@ import { InvestmentForm } from '@/components/investment-form';
 import { FormSelection } from '@/components/form-selection';
 import { ProposalVisibility } from '@/components/proposal-visibility';
 import { useAuth } from '@/providers/AuthProvider';
+import ProtectedRoute from '@/components/routes/ProtectedRoute';
 
 interface FormElement {
   type: string;
@@ -295,114 +296,116 @@ function ProposalPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-3xl">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-2xl">Create New Grant</CardTitle>
-          <CardDescription>Complete the two-step process to submit your grant</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              <div className={`flex-1 text-center p-2 rounded-l-md ${currentStep === 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                Step 1: Grant Details
-              </div>
-              <div className={`flex-1 text-center p-2 rounded-r-md ${currentStep === 2 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                Step 2: Template Selection
+    <ProtectedRoute>
+      <div className="container mx-auto py-8 max-w-3xl">
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-2xl">Create New Grant</CardTitle>
+            <CardDescription>Complete the two-step process to submit your grant</CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="mb-6">
+              <div className="flex justify-between mb-2">
+                <div className={`flex-1 text-center p-2 rounded-l-md ${currentStep === 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                  Step 1: Grant Details
+                </div>
+                <div className={`flex-1 text-center p-2 rounded-r-md ${currentStep === 2 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                  Step 2: Template Selection
+                </div>
               </div>
             </div>
-          </div>
-          
-          {currentStep === 1 && (
-            <>
-              <div className="space-y-4 mb-6">
-                <div>
-                  <Label htmlFor="proposal-title">Grant Title</Label>
-                  <Input 
-                    id="proposal-title" 
-                    placeholder="Enter a title for your grant"
-                    value={proposalData.title}
-                    onChange={handleTitleChange}
-                    className="mt-1"
-                  />
+            
+            {currentStep === 1 && (
+              <>
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <Label htmlFor="proposal-title">Grant Title</Label>
+                    <Input 
+                      id="proposal-title" 
+                      placeholder="Enter a title for your grant"
+                      value={proposalData.title}
+                      onChange={handleTitleChange}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="proposal-description">Grant Description</Label>
+                    <Textarea 
+                      id="proposal-description" 
+                      placeholder="Provide a brief description of your investment grant"
+                      value={proposalData.description}
+                      onChange={handleDescriptionChange}
+                      className="mt-1"
+                      rows={3}
+                    />
+                  </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="proposal-description">Grant Description</Label>
-                  <Textarea 
-                    id="proposal-description" 
-                    placeholder="Provide a brief description of your investment grant"
-                    value={proposalData.description}
-                    onChange={handleDescriptionChange}
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              
-              <InvestmentForm 
+                <InvestmentForm 
+                  proposalData={proposalData}
+                  setProposalData={setProposalData}
+                />
+              </>
+            )}
+            
+            {currentStep === 2 && (
+              <FormSelection 
                 proposalData={proposalData}
                 setProposalData={setProposalData}
+                forms={forms}
+                isLoadingForms={isLoadingForms}
+                handleFormSelection={handleFormSelection}
+                handleFormNameChange={handleFormNameChange}
+                fetchFormDetails={fetchFormDetails}
+                selectedForm={selectedForm}
+                isLoadingPreview={isLoadingPreview}
+                isPreviewOpen={isPreviewOpen}
+                setIsPreviewOpen={setIsPreviewOpen}
               />
-            </>
-          )}
-          
-          {currentStep === 2 && (
-            <FormSelection 
-              proposalData={proposalData}
-              setProposalData={setProposalData}
-              forms={forms}
-              isLoadingForms={isLoadingForms}
-              handleFormSelection={handleFormSelection}
-              handleFormNameChange={handleFormNameChange}
-              fetchFormDetails={fetchFormDetails}
-              selectedForm={selectedForm}
-              isLoadingPreview={isLoadingPreview}
-              isPreviewOpen={isPreviewOpen}
-              setIsPreviewOpen={setIsPreviewOpen}
+            )}
+            
+            <ProposalVisibility 
+              isPublic={proposalData.isPublic}
+              handlePublicToggle={handlePublicToggle}
             />
-          )}
+          </CardContent>
           
-          <ProposalVisibility 
-            isPublic={proposalData.isPublic}
-            handlePublicToggle={handlePublicToggle}
-          />
-        </CardContent>
-        
-        <CardFooter className="flex justify-between">
-          {currentStep === 1 ? (
-            <div></div>
-          ) : (
-            <Button variant="outline" onClick={prevStep}>
-              Back
-            </Button>
-          )}
-          
-          {currentStep === 1 ? (
-            <Button 
-              onClick={nextStep} 
-              disabled={!isStep1Valid()}
-              className="gap-2"
-            >
-              Next <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button 
-              onClick={submitProposal}
-              disabled={!isStep2Valid()}
-              className="gap-2"
-            >
-              {proposalData.selectedForm === "new" ? (
-                <>Continue to Template Builder <ArrowRight className="h-4 w-4" /></>
-              ) : (
-                <>Submit Grant <Save className="h-4 w-4" /></>
-              )}
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+          <CardFooter className="flex justify-between">
+            {currentStep === 1 ? (
+              <div></div>
+            ) : (
+              <Button variant="outline" onClick={prevStep}>
+                Back
+              </Button>
+            )}
+            
+            {currentStep === 1 ? (
+              <Button 
+                onClick={nextStep} 
+                disabled={!isStep1Valid()}
+                className="gap-2"
+              >
+                Next <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button 
+                onClick={submitProposal}
+                disabled={!isStep2Valid()}
+                className="gap-2"
+              >
+                {proposalData.selectedForm === "new" ? (
+                  <>Continue to Template Builder <ArrowRight className="h-4 w-4" /></>
+                ) : (
+                  <>Submit Grant <Save className="h-4 w-4" /></>
+                )}
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    </ProtectedRoute>
   );
 }
 

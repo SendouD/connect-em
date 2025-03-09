@@ -3,45 +3,25 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardFooter,
-    CardDescription
-} from '@/components/ui/card'
-import {
-    Table,
-    TableHeader,
-    TableRow,
-    TableHead,
-    TableBody,
-    TableCell
-} from '@/components/ui/table'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card'
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image as ImageIcon, ExternalLink, Mail } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useAuth } from '@/providers/AuthProvider'
 import ApplicationsGraph from '@/components/Line'
 import UserDashboard from '@/components/UserDashboard'
 import UserPitch from '@/components/User-pitches'
+import ProtectedRoute from '@/components/routes/ProtectedRoute'
+
 export default function InvestorDashboard() {
     const [proposals, setProposals] = useState([])
     const [applications, setApplications] = useState([])
     const [selectedProposal, setSelectedProposal] = useState(null)
     const [selectedApplication, setSelectedApplication] = useState(null)
     const [loading, setLoading] = useState(true)
-    const { isAuthenticated, authLoading } = useAuth()
     const router = useRouter()
-  
-    useEffect(() => {
-      if (!authLoading && !isAuthenticated) {
-        router.push("/auth")
-      }
-    }, [isAuthenticated, router])
 
     useEffect(() => {
         async function fetchProposals() {
@@ -490,97 +470,99 @@ export default function InvestorDashboard() {
     }
 
     return (
-        <div className="container mx-auto py-6">
-            <Tabs defaultValue="grants">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold">Dashboard</h1>
-                    <TabsList>
-                        <TabsTrigger value="grants">Grants</TabsTrigger>
-                        <TabsTrigger value="applied-grants">Applied Grants</TabsTrigger>
-                        <TabsTrigger value="pitches">Pitches</TabsTrigger>
+        <ProtectedRoute>
+            <div className="container mx-auto py-6">
+                <Tabs defaultValue="grants">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold">Dashboard</h1>
+                        <TabsList>
+                            <TabsTrigger value="grants">Grants</TabsTrigger>
+                            <TabsTrigger value="applied-grants">Applied Grants</TabsTrigger>
+                            <TabsTrigger value="pitches">Pitches</TabsTrigger>
 
-                    </TabsList>
-                </div>
+                        </TabsList>
+                    </div>
 
-                <TabsContent value="grants">
-                <div className="container mx-auto py-8 px-4">
+                    <TabsContent value="grants">
+                    <div className="container mx-auto py-8 px-4">
 
-                <h1 className="text-3xl font-bold mb-6">Posted Grants</h1>
+                    <h1 className="text-3xl font-bold mb-6">Posted Grants</h1>
 
-                    {proposals.length === 0 ? (
-                        <Card>
-                            <CardContent className="text-center py-12">
-                                <p className="text-muted-foreground mb-4">
-                                    You haven't posted any Grants yet.
-                                </p>
-                                <Button onClick={() => router.push('/create-proposal')}>
-                                    Post Your First Grant
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {proposals.map((proposal) => (
-                                <Card className="h-full">
-                                    <CardHeader className="">
-                                    <CardTitle className="text-lg truncate" title={proposal.title || "No title"}>
-                                        {proposal.title || "No title"}
-                                    </CardTitle>
-                                    <CardDescription className="line-clamp-2 max-h-10" title={proposal.description || "No description"}>
-                                        {proposal.description || "No description"}
-                                    </CardDescription>
-                                    <div className="flex gap-2 mt-2 flex-wrap">
-                                        <Badge variant="outline">{proposal.domain}</Badge>
-                                        <Badge variant="outline">{proposal.type}</Badge>
-                                    </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                    <div className="space-y-2">
-                                        {proposal.email && (
-                                        <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground truncate">
-                                            <Mail className="h-4 w-4" />
-                                            <span className="truncate" title={proposal.email}>{proposal.email} (You)</span>
+                        {proposals.length === 0 ? (
+                            <Card>
+                                <CardContent className="text-center py-12">
+                                    <p className="text-muted-foreground mb-4">
+                                        You haven't posted any Grants yet.
+                                    </p>
+                                    <Button onClick={() => router.push('/create-proposal')}>
+                                        Post Your First Grant
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {proposals.map((proposal) => (
+                                    <Card className="h-full">
+                                        <CardHeader className="">
+                                        <CardTitle className="text-lg truncate" title={proposal.title || "No title"}>
+                                            {proposal.title || "No title"}
+                                        </CardTitle>
+                                        <CardDescription className="line-clamp-2 max-h-10" title={proposal.description || "No description"}>
+                                            {proposal.description || "No description"}
+                                        </CardDescription>
+                                        <div className="flex gap-2 mt-2 flex-wrap">
+                                            <Badge variant="outline">{proposal.domain}</Badge>
+                                            <Badge variant="outline">{proposal.type}</Badge>
                                         </div>
-                                        )}
-                                        <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Amount:</span>
-                                        <span className="font-semibold">${proposal.amount.toLocaleString()}</span>
+                                        </CardHeader>
+                                        <CardContent>
+                                        <div className="space-y-2">
+                                            {proposal.email && (
+                                            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground truncate">
+                                                <Mail className="h-4 w-4" />
+                                                <span className="truncate" title={proposal.email}>{proposal.email} (You)</span>
+                                            </div>
+                                            )}
+                                            <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Amount:</span>
+                                            <span className="font-semibold">${proposal.amount.toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Form:</span>
+                                            <span>{"Yes"}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Visibility:</span>
+                                            <Badge variant={proposal.isPublic ? "default" : "secondary"}>
+                                                {proposal.isPublic ? "Public" : "Private"}
+                                            </Badge>
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Form:</span>
-                                        <span>{"Yes"}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Visibility:</span>
-                                        <Badge variant={proposal.isPublic ? "default" : "secondary"}>
-                                            {proposal.isPublic ? "Public" : "Private"}
-                                        </Badge>
-                                        </div>
-                                    </div>
-                                    </CardContent>
-                                    <CardFooter>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full"
-                                            onClick={() => setSelectedProposal(proposal)}
-                                        >
-                                            View Applications
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                </TabsContent>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                onClick={() => setSelectedProposal(proposal)}
+                                            >
+                                                View Applications
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    </TabsContent>
 
-                <TabsContent value="applied-grants">
-                  <UserDashboard/>
-                </TabsContent>
-                <TabsContent value="pitches">
-                    <UserPitch/>
-                </TabsContent>
-            </Tabs>
-        </div>
+                    <TabsContent value="applied-grants">
+                    <UserDashboard/>
+                    </TabsContent>
+                    <TabsContent value="pitches">
+                        <UserPitch/>
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </ProtectedRoute>
     )
 }

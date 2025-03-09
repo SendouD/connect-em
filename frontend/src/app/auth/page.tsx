@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -16,6 +16,7 @@ export default function AuthForm() {
   const passwordSignInRef = useRef<HTMLInputElement>(null);
   const [signInError, setSignInError] = useState<string | null>(null);
   const [signInSuccess, setSignInSuccess] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const firstNameRef = useRef<HTMLInputElement>(null);
   const lastNameRef = useRef<HTMLInputElement>(null);
@@ -24,6 +25,7 @@ export default function AuthForm() {
   const passwordSignUpRef = useRef<HTMLInputElement>(null);
   const [signUpError, setSignUpError] = useState<string | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState<string | null>(null);
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   const [activeTab, setActiveTab] = useState("signin");
 
@@ -41,9 +43,11 @@ export default function AuthForm() {
     e.preventDefault();
     setSignInError(null);
     setSignInSuccess(null);
+    setIsSigningIn(true);
 
     if (!emailSignInRef.current || !passwordSignInRef.current) {
       setSignInError("All fields are required.");
+      setIsSigningIn(false);
       return;
     }
 
@@ -76,6 +80,8 @@ export default function AuthForm() {
       }
     } catch (error: any) {
       setSignInError(error.message || "Error occurred.");
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -83,6 +89,7 @@ export default function AuthForm() {
     e.preventDefault();
     setSignUpError(null);
     setSignUpSuccess(null);
+    setIsSigningUp(true);
 
     if (
       !firstNameRef.current ||
@@ -92,6 +99,7 @@ export default function AuthForm() {
       !usernameRef.current
     ) {
       setSignUpError("All fields are required.");
+      setIsSigningUp(false);
       return;
     }
 
@@ -125,6 +133,8 @@ export default function AuthForm() {
       }, 2000);
     } catch (error: any) {
       setSignUpError(error.message || "Error occurred during registration.");
+    } finally {
+      setIsSigningUp(false);
     }
   };
 
@@ -172,17 +182,26 @@ export default function AuthForm() {
                       type="email"
                       placeholder="Email"
                       required
+                      disabled={isSigningIn}
                     />
                     <Input
                       ref={passwordSignInRef}
                       type="password"
                       placeholder="Password"
                       required
+                      disabled={isSigningIn}
                     />
                   </div>
                   
-                  <Button type="submit" className="w-full">
-                    Sign In
+                  <Button type="submit" className="w-full" disabled={isSigningIn}>
+                    {isSigningIn ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      "Sign In"
+                    )}
                   </Button>
                 </form>
               </motion.div>
@@ -216,12 +235,14 @@ export default function AuthForm() {
                       type="text"
                       placeholder="First name"
                       required
+                      disabled={isSigningUp}
                     />
                     <Input
                       ref={lastNameRef}
                       type="text"
                       placeholder="Last name"
                       required
+                      disabled={isSigningUp}
                     />
                   </div>
                   
@@ -230,22 +251,32 @@ export default function AuthForm() {
                     type="text"
                     placeholder="Username"
                     required
+                    disabled={isSigningUp}
                   />
                   <Input
                     ref={emailSignUpRef}
                     type="email"
                     placeholder="Email"
                     required
+                    disabled={isSigningUp}
                   />
                   <Input
                     ref={passwordSignUpRef}
                     type="password"
                     placeholder="Password"
                     required
+                    disabled={isSigningUp}
                   />
                   
-                  <Button type="submit" className="w-full">
-                    Create Account
+                  <Button type="submit" className="w-full" disabled={isSigningUp}>
+                    {isSigningUp ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
                   </Button>
                 </form>
               </motion.div>

@@ -20,10 +20,10 @@ export default function Home() {
           with strategic investors through customized applications and efficient reviews.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/create-proposal')}>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/founder-pitches')}>
             I'm an Investor <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-          <Button size="lg" variant="outline" onClick={() => router.push('/create-pitch')}>
+          <Button size="lg" variant="outline" onClick={() => router.push('/investor-proposals')}>
             I'm a Founder <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
