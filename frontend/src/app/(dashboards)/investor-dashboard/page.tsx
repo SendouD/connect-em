@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/providers/AuthProvider'
+import ApplicationsGraph from '@/components/Line'
 
 export default function InvestorDashboard() {
     const [proposals, setProposals] = useState([])
@@ -417,68 +418,69 @@ export default function InvestorDashboard() {
                                 No applications received yet for this proposal.
                             </div>
                         ) : (
+                            <> <ApplicationsGraph applications={applications} />
                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Applicant</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Media</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {applications.map((application) => {
-                                        // Count media files (images and documents)
-                                        let mediaCount = 0;
-                                        if (application.submittedData) {
-                                            Object.values(application.submittedData).forEach(value => {
-                                                if (typeof value === 'string' && value.includes('.')) {
-                                                    mediaCount++;
-                                                } else if (Array.isArray(value)) {
-                                                    value.forEach(item => {
-                                                        if (typeof item === 'string' && item.includes('.')) {
-                                                            mediaCount++;
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                        
-                                        return (
-                                            <TableRow key={application._id}>
-                                                <TableCell>{application.email}</TableCell>
-                                                <TableCell>
-                                                    {new Date(application.createdAt).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>{renderStatus(application)}</TableCell>
-                                                <TableCell>
-                                                    {mediaCount > 0 ? (
-                                                        <Badge variant="outline" className="flex items-center gap-1">
-                                                            {isImageFile(Object.values(application.submittedData)[0]) ? 
-                                                                <ImageIcon className="h-3 w-3" /> : 
-                                                                <FileText className="h-3 w-3" />
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Applicant</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Media</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {applications.map((application) => {
+                                            // Count media files (images and documents)
+                                            let mediaCount = 0
+                                            if (application.submittedData) {
+                                                Object.values(application.submittedData).forEach(value => {
+                                                    if (typeof value === 'string' && value.includes('.')) {
+                                                        mediaCount++
+                                                    } else if (Array.isArray(value)) {
+                                                        value.forEach(item => {
+                                                            if (typeof item === 'string' && item.includes('.')) {
+                                                                mediaCount++
                                                             }
-                                                            {mediaCount} {mediaCount === 1 ? 'file' : 'files'}
-                                                        </Badge>
-                                                    ) : (
-                                                        <span className="text-gray-400">No files</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setSelectedApplication(application)}
-                                                    >
-                                                        View Details
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
+                                                        })
+                                                    }
+                                                })
+                                            }
+
+                                            return (
+                                                <TableRow key={application._id}>
+                                                    <TableCell>{application.email}</TableCell>
+                                                    <TableCell>
+                                                        {new Date(application.createdAt).toLocaleDateString()}
+                                                    </TableCell>
+                                                    <TableCell>{renderStatus(application)}</TableCell>
+                                                    <TableCell>
+                                                        {mediaCount > 0 ? (
+                                                            <Badge variant="outline" className="flex items-center gap-1">
+                                                                {isImageFile(Object.values(application.submittedData)[0]) ?
+                                                                    <ImageIcon className="h-3 w-3" /> :
+                                                                    <FileText className="h-3 w-3" />}
+                                                                {mediaCount} {mediaCount === 1 ? 'file' : 'files'}
+                                                            </Badge>
+                                                        ) : (
+                                                            <span className="text-gray-400">No files</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setSelectedApplication(application)}
+                                                        >
+                                                            View Details
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
+                                    </TableBody>
+                                </Table></>
+
                         )}
                     </CardContent>
                 </Card>
