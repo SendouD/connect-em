@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const ProposalSchema = new mongoose.Schema({
     email: { type: String, required: true },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     domain: { type: String, required: true },
     type: { type: String, required: true },
     amount: { type: Number, required: true },

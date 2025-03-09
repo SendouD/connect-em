@@ -7,7 +7,7 @@ interface CustomRequest extends Request {
 
 export const createProposal = async (req: CustomRequest, res: Response) => {
     try {
-        const { investments, formId, isPublic } = req.body;
+        const { investments, formId, isPublic, title, description } = req.body;
         const email = req.email;
 
         console.log(investments, formId, isPublic, email);
@@ -23,6 +23,8 @@ export const createProposal = async (req: CustomRequest, res: Response) => {
             const { domain, type, amount } = investment;
 
             const newProposal = new Proposal({
+                title,
+                description,
                 domain,
                 type,
                 amount,
@@ -59,5 +61,14 @@ export const getInvestorProposals = async (req: CustomRequest, res: Response) =>
         res.status(200).json(proposals);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching proposals', error });
+    }
+}
+
+export const getProposal = async (req: Request, res: Response) => {
+    try {
+        const proposal = await Proposal.findById(req.params.proposalId);
+        res.status(200).json(proposal);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching proposal', error });
     }
 }

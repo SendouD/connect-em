@@ -53,7 +53,9 @@ function CreatePitchPage() {
     formId: "",
     email: "",
     domain: "",
-    type: ""
+    type: "",
+    title: "",
+    description: ""
   });
   const { isAuthenticated, authLoading, user } = useAuth();
   const router = useRouter();
@@ -65,6 +67,7 @@ function CreatePitchPage() {
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
 
   useEffect(() => {
+    console.log(user)
     if (!authLoading && !isAuthenticated) {
       router.push("/auth");
     } else if (!authLoading && isAuthenticated && user?.email) {
@@ -111,6 +114,10 @@ function CreatePitchPage() {
 
   const handleTypeChange = (type: string) => {
     setPitchData(prev => ({ ...prev, type }));
+  };
+
+  const handlePitchDataChange = (field: string, value: string) => {
+    setPitchData(prev => ({ ...prev, [field]: value }));
   };
 
   const fetchFormDetails = async (formId: string) => {
@@ -506,6 +513,11 @@ function CreatePitchPage() {
       return false;
     }
     
+    // Check if title and description are provided
+    if (!pitchData.title || !pitchData.description) {
+      return false;
+    }
+    
     for (const component of selectedForm.components) {
       if (component.validate?.required && !formData[component.label] && component.type !== "file") {
         return false;
@@ -577,6 +589,8 @@ function CreatePitchPage() {
           email: pitchData.email || user?.email,
           domain: pitchData.domain,
           type: pitchData.type,
+          title: pitchData.title,
+          description: pitchData.description,
           submittedData: submittedData
         }),
       });
@@ -606,6 +620,37 @@ function CreatePitchPage() {
         </CardHeader>
         
         <CardContent>
+          {/* Title and Description Fields */}
+          <div className="mb-6 space-y-4">
+            <div>
+              <Label htmlFor="pitch-title" className="block mb-2">
+                Pitch Title <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="pitch-title"
+                type="text"
+                placeholder="Enter a title for your pitch"
+                value={pitchData.title}
+                onChange={(e) => handlePitchDataChange('title', e.target.value)}
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="pitch-description" className="block mb-2">
+                Pitch Description <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="pitch-description"
+                placeholder="Provide a brief description of your pitch"
+                value={pitchData.description}
+                onChange={(e) => handlePitchDataChange('description', e.target.value)}
+                required
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+
           {/* Domain and Type Selection */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

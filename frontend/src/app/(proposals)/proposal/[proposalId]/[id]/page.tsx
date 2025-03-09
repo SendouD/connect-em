@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Loader2, Upload, X, FileIcon, ImageIcon } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
+import { Loader2, Upload, X, FileIcon, ImageIcon, DollarSign } from 'lucide-react'
 import { useAuth } from "@/providers/AuthProvider"
 import axios from "axios"
 import Image from "next/image"
@@ -35,6 +35,18 @@ interface FormData {
   components: FormElement[]
 }
 
+interface Proposal {
+  _id: string
+  domain: string
+  type: string
+  amount: number
+  formId: string
+  isPublic: boolean
+  email?: string
+  title?: string
+  description?: string
+}
+
 export default function DynamicForm() {
   const [form, setForm] = useState<FormData | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
@@ -48,6 +60,7 @@ export default function DynamicForm() {
   const [fileUrls, setFileUrls] = useState<Record<string, string[]>>({})
   const [fileUploadStatus, setFileUploadStatus] = useState<Record<string, string>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const [proposal, setProposal] = useState<Proposal | null>(null)
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -57,7 +70,6 @@ export default function DynamicForm() {
 
   useEffect(() => {
     async function fetchFilledData() {
-      setIsLoading(true);
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/get-filled-form/${proposalId}`, {
           method: "GET",
@@ -100,13 +112,41 @@ export default function DynamicForm() {
         setIsLoading(false);
       }
     }
+
+    async function getProposal() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/proposal/${proposalId}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch proposal data");
+        }
+  
+        let data = await response.json();
+  
+        if (data && data._id) {
+          console.log("Proposal data:", data);
+          setProposal(data);
+        }
+      } catch (error) {
+        console.error("Error fetching proposal data:", error);
+      }
+    }
   
     if (proposalId) {
+      setIsLoading(true);
       fetchFilledData();
+      getProposal();
+      setIsLoading(false);
     } else {
       setIsLoading(false);
     }
-  }, [proposalId]);   
+  }, [proposalId]);
 
   useEffect(() => {
     async function fetchFormData() {
@@ -293,302 +333,347 @@ export default function DynamicForm() {
   }
 
   return (
-    <Card className="max-w-xl mx-auto shadow-md mt-10">
-      <CardHeader className="">
-        <CardTitle className="text-xl">{form.name}</CardTitle>
-        {filledData && (
-          <div className="mt-2">
-            {filledData.isSubmitted && !filledData.isApproved && !filledData.isRejected && (
-              <div className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-md inline-block">
-                Status: Pending Review
+    <div className="max-w-xl mx-auto mt-10 space-y-4">
+      {/* Proposal Details Card */}
+      {proposal && (
+        <Card className="shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between">
+              <span>{proposal.title || "Untitled Proposal"}</span>
+              <div className="flex items-center bg-primary-50 text-primary px-3 py-1 rounded-full text-sm">
+                <DollarSign className="h-4 w-4 mr-1" />
+                {proposal.amount.toLocaleString()}
               </div>
+            </CardTitle>
+            {proposal.description && (
+              <CardDescription className="mt-2">
+                {proposal.description}
+              </CardDescription>
             )}
-            {filledData.isApproved && (
-              <div className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md inline-block">
-                Status: Approved
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground mb-1">Domain</p>
+                <p className="font-medium">{proposal.domain}</p>
               </div>
-            )}
-            {filledData.isRejected && (
-              <div className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md inline-block">Status: Rejected</div>
-            )}
-            {!filledData.isSubmitted && !filledData.isApproved && !filledData.isRejected && (
-              <div className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md inline-block">Status: Draft</div>
-            )}
-            {filledData.isPaid && (
-              <div className="ml-2 px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-md inline-block">
-                Payment: Received
+              <div>
+                <p className="text-muted-foreground mb-1">Type</p>
+                <p className="font-medium">{proposal.type}</p>
               </div>
-            )}
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent className="pt-6">
-        {filledData && filledData.isSubmitted && (
-          <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-md">
-            <p className="text-sm">This form has already been submitted and cannot be modified.</p>
-          </div>
-        )}
-        <form onSubmit={handleSubmit} id="dynamic-form" className="space-y-5">
-          {form.components.map((field) => (
-            <div key={field.label} className="space-y-1.5">
-              <Label htmlFor={field.label} className="text-sm font-medium mb-1.5 block">
-                {field.label}
-                {field.validate?.required && <span className="text-destructive ml-1">*</span>}
-              </Label>
-
-              {field.key === "textfield" && (
-                <Input
-                  id={field.label}
-                  type="text"
-                  placeholder={field.placeholder || ""}
-                  value={formValues[field.label] || ""}
-                  onChange={(e) => handleChange(field.label, e.target.value)}
-                  className="transition-all duration-200"
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                />
+              {proposal.email && (
+                <div>
+                  <p className="text-muted-foreground mb-1">Contact</p>
+                  <p className="font-medium">{proposal.email}</p>
+                </div>
               )}
+              <div>
+                <p className="text-muted-foreground mb-1">Visibility</p>
+                <p className="font-medium">{proposal.isPublic ? "Public" : "Private"}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              {field.key === "textarea" && (
-                <Textarea
-                  id={field.label}
-                  placeholder={field.placeholder || ""}
-                  value={formValues[field.label] || ""}
-                  onChange={(e) => handleChange(field.label, e.target.value)}
-                  className="min-h-[120px] transition-all duration-200"
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                />
+      {/* Form Submission Card */}
+      <Card className="shadow-md">
+        <CardHeader>
+          <CardTitle className="text-xl">{form.name}</CardTitle>
+          {filledData && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {filledData.isSubmitted && !filledData.isApproved && !filledData.isRejected && (
+                <div className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-md inline-block">
+                  Status: Pending Review
+                </div>
               )}
-
-              {field.inputType === "date" && (
-                <Input
-                  id={field.label}
-                  type="date"
-                  value={formValues[field.label] || ""}
-                  onChange={(e) => handleChange(field.label, e.target.value)}
-                  className="transition-all duration-200"
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                />
+              {filledData.isApproved && (
+                <div className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md inline-block">
+                  Status: Approved
+                </div>
               )}
-
-              {field.key === "number" && (
-                <Input
-                  id={field.label}
-                  type="number"
-                  placeholder={field.placeholder || ""}
-                  value={formValues[field.label] || ""}
-                  onChange={(e) => handleChange(field.label, e.target.value)}
-                  className="transition-all duration-200"
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                />
+              {filledData.isRejected && (
+                <div className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md inline-block">Status: Rejected</div>
               )}
-
-              {field.key === "password" && (
-                <Input
-                  id={field.label}
-                  type="password"
-                  placeholder={field.placeholder || ""}
-                  value={formValues[field.label] || ""}
-                  onChange={(e) => handleChange(field.label, e.target.value)}
-                  className="transition-all duration-200"
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                />
+              {!filledData.isSubmitted && !filledData.isApproved && !filledData.isRejected && (
+                <div className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md inline-block">Status: Draft</div>
               )}
+              {filledData.isPaid && (
+                <div className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-md inline-block">
+                  Payment: Received
+                </div>
+              )}
+            </div>
+          )}
+        </CardHeader>
 
-              {field.type === "checkbox" && (
-                <div className="flex items-center space-x-2 pt-1">
-                  <input
+        <CardContent className="pt-6">
+          {filledData && filledData.isSubmitted && (
+            <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-md">
+              <p className="text-sm">This form has already been submitted and cannot be modified.</p>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} id="dynamic-form" className="space-y-5">
+            {form.components.map((field) => (
+              <div key={field.label} className="space-y-1.5">
+                <Label htmlFor={field.label} className="text-sm font-medium mb-1.5 block">
+                  {field.label}
+                  {field.validate?.required && <span className="text-destructive ml-1">*</span>}
+                </Label>
+
+                {field.key === "textfield" && (
+                  <Input
                     id={field.label}
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    checked={formValues[field.label] === "yes" || formValues[field.label] === true}
-                    onChange={(e) => handleChange(field.label, e.target.checked ? "yes" : "no")}
+                    type="text"
+                    placeholder={field.placeholder || ""}
+                    value={formValues[field.label] || ""}
+                    onChange={(e) => handleChange(field.label, e.target.value)}
+                    className="transition-all duration-200"
                     required={field.validate?.required}
                     disabled={filledData && filledData.isSubmitted}
                   />
-                  <Label htmlFor={field.label} className="text-sm font-normal">
-                    {field.placeholder || "Yes"}
-                  </Label>
-                </div>
-              )}
+                )}
 
-              {field.type === "radio" && (
-                <div className="space-y-2 pt-1">
-                  {field.options?.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <input
-                        id={`${field.label}-${option}`}
-                        type="radio"
-                        name={field.label}
-                        className="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
-                        value={option}
-                        checked={formValues[field.label] === option}
-                        onChange={(e) => handleChange(field.label, e.target.value)}
-                        required={field.validate?.required && !formValues[field.label]}
-                        disabled={filledData && filledData.isSubmitted}
-                      />
-                      <Label htmlFor={`${field.label}-${option}`} className="text-sm font-normal">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {field.type === "select" && (
-                <Select
-                  onValueChange={(value) => handleChange(field.label, value)}
-                  value={formValues[field.label] || ""}
-                  required={field.validate?.required}
-                  disabled={filledData && filledData.isSubmitted}
-                >
-                  <SelectTrigger className="w-full transition-all duration-200">
-                    <SelectValue placeholder={field.placeholder || "Select an option"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {field.options?.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {isFileField(field) && (
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    id={`file-input-${field.label}`}
-                    className="hidden"
-                    accept={field.fileTypes?.map(type => `.${type}`).join(',')}
-                    multiple={field.multiple || false}
-                    onChange={(e) => handleFileChange(field.label, e, field.multiple || false)}
+                {field.key === "textarea" && (
+                  <Textarea
+                    id={field.label}
+                    placeholder={field.placeholder || ""}
+                    value={formValues[field.label] || ""}
+                    onChange={(e) => handleChange(field.label, e.target.value)}
+                    className="min-h-[120px] transition-all duration-200"
+                    required={field.validate?.required}
                     disabled={filledData && filledData.isSubmitted}
-                    ref={(el) => fileInputRefs.current[field.label] = el}
                   />
-                  
-                  <div 
-                    className={`border-2 border-dashed rounded-md p-4 text-center ${
-                      filledData && filledData.isSubmitted ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
-                    }`}
-                    onClick={() => !(filledData && filledData.isSubmitted) && triggerFileInput(field.label)}
-                  >
-                    {isImageField(field) ? (
-                      <ImageIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                    ) : (
-                      <FileIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                    )}
-                    <p className="text-sm text-muted-foreground">
-                      {fileUploadStatus[field.label] === "uploading" ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
-                        </span>
-                      ) : fileUploadStatus[field.label] === "error" ? (
-                        <span className="text-red-500">Upload failed. Click to try again.</span>
-                      ) : fileUrls[field.label] && fileUrls[field.label].length > 0 ? (
-                        `${fileUrls[field.label].length} file(s) selected`
-                      ) : (
-                        <>
-                          {field.placeholder || `Upload ${field.label}`}
-                          {field.fileTypes && field.fileTypes.length > 0 && (
-                            <span className="block mt-1 text-xs">
-                              Allowed: {field.fileTypes.map(t => `.${t}`).join(", ")}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </p>
+                )}
+
+                {field.inputType === "date" && (
+                  <Input
+                    id={field.label}
+                    type="date"
+                    value={formValues[field.label] || ""}
+                    onChange={(e) => handleChange(field.label, e.target.value)}
+                    className="transition-all duration-200"
+                    required={field.validate?.required}
+                    disabled={filledData && filledData.isSubmitted}
+                  />
+                )}
+
+                {field.key === "number" && (
+                  <Input
+                    id={field.label}
+                    type="number"
+                    placeholder={field.placeholder || ""}
+                    value={formValues[field.label] || ""}
+                    onChange={(e) => handleChange(field.label, e.target.value)}
+                    className="transition-all duration-200"
+                    required={field.validate?.required}
+                    disabled={filledData && filledData.isSubmitted}
+                  />
+                )}
+
+                {field.key === "password" && (
+                  <Input
+                    id={field.label}
+                    type="password"
+                    placeholder={field.placeholder || ""}
+                    value={formValues[field.label] || ""}
+                    onChange={(e) => handleChange(field.label, e.target.value)}
+                    className="transition-all duration-200"
+                    required={field.validate?.required}
+                    disabled={filledData && filledData.isSubmitted}
+                  />
+                )}
+
+                {field.type === "checkbox" && (
+                  <div className="flex items-center space-x-2 pt-1">
+                    <input
+                      id={field.label}
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={formValues[field.label] === "yes" || formValues[field.label] === true}
+                      onChange={(e) => handleChange(field.label, e.target.checked ? "yes" : "no")}
+                      required={field.validate?.required}
+                      disabled={filledData && filledData.isSubmitted}
+                    />
+                    <Label htmlFor={field.label} className="text-sm font-normal">
+                      {field.placeholder || "Yes"}
+                    </Label>
                   </div>
-                  
-                  {fileUrls[field.label] && fileUrls[field.label].length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {fileUrls[field.label].map((url, index) => (
-                        <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded">
-                          {isImageField(field) && url.startsWith('blob:') ? (
-                            <div className="w-10 h-10 relative">
-                              <Image
-                                src={url}
-                                alt={`Preview ${index}`}
-                                fill
-                                className="object-cover rounded"
-                              />
-                            </div>
-                          ) : isImageField(field) && (url.startsWith('http://') || url.startsWith('https://')) ? (
-                            <div className="w-10 h-10 relative">
-                              <Image
-                                src={url}
-                                alt={`Uploaded ${index}`}
-                                fill
-                                className="object-cover rounded"
-                              />
-                            </div>
-                          ) : (
-                            <FileIcon className="w-5 h-5 text-blue-500" />
-                          )}
-                          
-                          <span className="text-sm truncate flex-1">
-                            {url.startsWith('blob:') 
-                              ? fileUploads[field.label][index].name 
-                              : url.split('/').pop()}
-                          </span>
-                          
-                          {!(filledData && filledData.isSubmitted) && url.startsWith('blob:') && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeFile(field.label, index);
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                )}
+
+                {field.type === "radio" && (
+                  <div className="space-y-2 pt-1">
+                    {field.options?.map((option) => (
+                      <div key={option} className="flex items-center space-x-2">
+                        <input
+                          id={`${field.label}-${option}`}
+                          type="radio"
+                          name={field.label}
+                          className="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                          value={option}
+                          checked={formValues[field.label] === option}
+                          onChange={(e) => handleChange(field.label, e.target.value)}
+                          required={field.validate?.required && !formValues[field.label]}
+                          disabled={filledData && filledData.isSubmitted}
+                        />
+                        <Label htmlFor={`${field.label}-${option}`} className="text-sm font-normal">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {field.type === "select" && (
+                  <Select
+                    onValueChange={(value) => handleChange(field.label, value)}
+                    value={formValues[field.label] || ""}
+                    required={field.validate?.required}
+                    disabled={filledData && filledData.isSubmitted}
+                  >
+                    <SelectTrigger className="w-full transition-all duration-200">
+                      <SelectValue placeholder={field.placeholder || "Select an option"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {field.options?.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                {isFileField(field) && (
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      id={`file-input-${field.label}`}
+                      className="hidden"
+                      accept={field.fileTypes?.map(type => `.${type}`).join(',')}
+                      multiple={field.multiple || false}
+                      onChange={(e) => handleFileChange(field.label, e, field.multiple || false)}
+                      disabled={filledData && filledData.isSubmitted}
+                      ref={(el) => fileInputRefs.current[field.label] = el}
+                    />
+                    
+                    <div 
+                      className={`border-2 border-dashed rounded-md p-4 text-center ${
+                        filledData && filledData.isSubmitted ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+                      }`}
+                      onClick={() => !(filledData && filledData.isSubmitted) && triggerFileInput(field.label)}
+                    >
+                      {isImageField(field) ? (
+                        <ImageIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      ) : (
+                        <FileIcon className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        {fileUploadStatus[field.label] === "uploading" ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+                          </span>
+                        ) : fileUploadStatus[field.label] === "error" ? (
+                          <span className="text-red-500">Upload failed. Click to try again.</span>
+                        ) : fileUrls[field.label] && fileUrls[field.label].length > 0 ? (
+                          `${fileUrls[field.label].length} file(s) selected`
+                        ) : (
+                          <>
+                            {field.placeholder || `Upload ${field.label}`}
+                            {field.fileTypes && field.fileTypes.length > 0 && (
+                              <span className="block mt-1 text-xs">
+                                Allowed: {field.fileTypes.map(t => `.${t}`).join(", ")}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </p>
                     </div>
-                  )}
-                </div>
-              )}
+                    
+                    {fileUrls[field.label] && fileUrls[field.label].length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {fileUrls[field.label].map((url, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded">
+                            {isImageField(field) && url.startsWith('blob:') ? (
+                              <div className="w-10 h-10 relative">
+                                <Image
+                                  src={url}
+                                  alt={`Preview ${index}`}
+                                  fill
+                                  className="object-cover rounded"
+                                />
+                              </div>
+                            ) : isImageField(field) && (url.startsWith('http://') || url.startsWith('https://')) ? (
+                              <div className="w-10 h-10 relative">
+                                <Image
+                                  src={url}
+                                  alt={`Uploaded ${index}`}
+                                  fill
+                                  className="object-cover rounded"
+                                />
+                              </div>
+                            ) : (
+                              <FileIcon className="w-5 h-5 text-blue-500" />
+                            )}
+                            
+                            <span className="text-sm truncate flex-1">
+                              {url.startsWith('blob:') 
+                                ? fileUploads[field.label][index].name 
+                                : url.split('/').pop()}
+                            </span>
+                            
+                            {!(filledData && filledData.isSubmitted) && url.startsWith('blob:') && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeFile(field.label, index);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {field.placeholder &&
-                field.inputType !== "password" &&
-                field.type !== "checkbox" &&
-                field.type !== "radio" &&
-                field.type !== "select" &&
-                field.type !== "file" && <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>}
-            </div>
-          ))}
-        </form>
-      </CardContent>
+                {field.placeholder &&
+                  field.inputType !== "password" &&
+                  field.type !== "checkbox" &&
+                  field.type !== "radio" &&
+                  field.type !== "select" &&
+                  field.type !== "file" && <p className="text-xs text-muted-foreground mt-1">{field.placeholder}</p>}
+              </div>
+            ))}
+          </form>
+        </CardContent>
 
-      <CardFooter className="flex justify-end border-t p-4">
-        <Button
-          type="submit"
-          form="dynamic-form"
-          disabled={isSubmitting || (filledData && filledData.isSubmitted)}
-          className="px-6"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : filledData && filledData.isSubmitted ? (
-            "Already Submitted"
-          ) : (
-            "Submit"
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+        <CardFooter className="flex justify-end border-t p-4">
+          <Button
+            type="submit"
+            form="dynamic-form"
+            disabled={isSubmitting || (filledData && filledData.isSubmitted)}
+            className="px-6"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : filledData && filledData.isSubmitted ? (
+              "Already Submitted"
+            ) : (
+              "Submit"
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

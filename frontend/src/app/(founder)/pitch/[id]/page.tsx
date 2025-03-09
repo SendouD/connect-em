@@ -54,6 +54,8 @@ interface Pitch {
   investors: string[];
   submittedData?: Record<string, any>;
   isPaid: boolean;
+  title: string;
+  description: string;
 }
 
 
@@ -308,25 +310,29 @@ export default function PitchDetailPage() {
       </div>
 
       <Card className="mb-8">
-       
-<CardHeader>
-  <CardTitle className="text-2xl">{pitch.domain}</CardTitle>
-  <CardDescription className="flex items-center">
-    <Badge variant="outline" className="mr-2">
-      {pitch.type}
-    </Badge>
-    <span className="text-sm">
-      Submitted on {formatDate(pitch.createdAt)}
-    </span>
-  </CardDescription>
-  
-  <InvestorsInterested 
-    investors={pitch.investors || []}
-    currentUserEmail={user?.email}
-    onShowInterest={handleInterest}
-    isInterested={isInterest}
-  />
-</CardHeader>
+            
+      <CardHeader>
+        <CardTitle className="text-2xl">{pitch.title}</CardTitle>
+        <CardDescription className="">{pitch.description}</CardDescription>
+        <CardDescription className="flex items-center my-2">
+          <Badge variant="outline" className="mr-2">
+            {pitch.domain}
+          </Badge>
+          <Badge variant="outline" className="mr-2">
+            {pitch.type}
+          </Badge>
+          <span className="text-sm">
+            Submitted on {formatDate(pitch.createdAt)}
+          </span>
+        </CardDescription>
+        
+        <InvestorsInterested 
+          investors={pitch.investors || []}
+          currentUserEmail={user?.email}
+          onShowInterest={handleInterest}
+          isInterested={isInterest}
+        />
+      </CardHeader>
 
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
