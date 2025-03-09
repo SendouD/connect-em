@@ -65,6 +65,7 @@ function CreatePitchPage() {
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
 
   useEffect(() => {
+    console.log(user)
     if (!authLoading && !isAuthenticated) {
       router.push("/auth");
     } else if (!authLoading && isAuthenticated && user?.email) {

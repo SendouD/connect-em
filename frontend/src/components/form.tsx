@@ -519,7 +519,7 @@ const FormBuilder = () => {
 
             const newField = {
             ...field,
-            id: `${field.id}-${Date.now()}`,
+            id: `${field.label}-${Date.now()}`,
             key: field.key || field.label.toLowerCase().replace(/\s+/g, ""),
             placeholder: "",
             defaultValue: "",
