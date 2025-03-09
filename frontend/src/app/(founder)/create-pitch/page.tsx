@@ -599,7 +599,7 @@ function CreatePitchPage() {
       
       if (response.ok) {
         alert("Pitch submitted successfully!");
-        router.push("/");
+        router.push("/dashboard");
       } else {
         alert(`Error: ${result.message || "Failed to submit pitch"}`);
       }

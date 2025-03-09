@@ -54,8 +54,13 @@ function Page() {
       }
 
       const data = await response.json()
-
-      setProposals(data.proposals)
+      
+      // Filter out any null or undefined proposals
+      const validProposals = Array.isArray(data.proposals) 
+        ? data.proposals.filter((proposal: Proposal | null) => proposal !== null && proposal !== undefined)
+        : []
+        
+      setProposals(validProposals)
       setLoading(false)
     } catch (err: any) {
       console.error('Error fetching proposals:', err)
@@ -85,9 +90,56 @@ function Page() {
     )
   }
 
+  const renderProposalCard = (proposal: Proposal) => {
+    // Skip rendering if proposal is null or undefined
+    if (!proposal || !proposal._id) {
+      return null;
+    }
+    
+    return (
+      <Card key={proposal._id} className="overflow-hidden">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">{proposal.domain || 'Unknown Domain'}</CardTitle>
+          <CardDescription>Type: {proposal.type || 'Unknown'}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Amount:</span>
+              <span className="font-semibold">
+                {typeof proposal.amount === 'number' ? formatCurrency(proposal.amount) : 'N/A'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Visibility:</span>
+              <Badge variant={proposal.isPublic ? "success" : "secondary"}>
+                {proposal.isPublic ? "Public" : "Private"}
+              </Badge>
+            </div>
+            
+            {proposal.createdAt && (
+              <p className="text-sm text-gray-500 pt-2">
+                Submitted: {format(new Date(proposal.createdAt), 'PPP')}
+              </p>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="bg-gray-50 pt-2">
+          <Button 
+            variant="outline" 
+            onClick={() => handleViewDetails(proposal._id, proposal.formId)}
+            className="w-full"
+          >
+            View Details
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Submitted Applications</h1>
+      <h1 className="text-2xl font-bold mb-6">Submitted Applications</h1>
       
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -113,88 +165,24 @@ function Page() {
         </Card>
       ) : (
         <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Proposals</TabsTrigger>
+            <TabsTrigger value="recent">Recent</TabsTrigger>
+          </TabsList>
+          
           <TabsContent value="all" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {proposals.map((proposal) => (
-                <Card key={proposal._id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">{proposal.domain}</CardTitle>
-                    <CardDescription>Type: {proposal.type}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Amount:</span>
-                        <span className="font-semibold">{formatCurrency(proposal.amount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Visibility:</span>
-                        <Badge variant={proposal.isPublic ? "success" : "secondary"}>
-                          {proposal.isPublic ? "Public" : "Private"}
-                        </Badge>
-                      </div>
-                      
-                      {proposal.createdAt && (
-                        <p className="text-sm text-gray-500 pt-2">
-                          Submitted: {format(new Date(proposal.createdAt), 'PPP')}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-gray-50 pt-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleViewDetails(proposal._id, proposal.formId)}
-                      className="w-full"
-                    >
-                      View Details
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+              {proposals.map((proposal) => renderProposalCard(proposal))}
             </div>
           </TabsContent>
           
           <TabsContent value="recent">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {proposals.map((proposal) => ( 
-                
-                <Card key={proposal._id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">{proposal.domain}</CardTitle>
-                    <CardDescription>Type: {proposal.type}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Amount:</span>
-                        <span className="font-semibold">{formatCurrency(proposal.amount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Visibility:</span>
-                        <Badge variant={proposal.isPublic ? "success" : "secondary"}>
-                          {proposal.isPublic ? "Public" : "Private"}
-                        </Badge>
-                      </div>
-                      {proposal.createdAt && (
-                        <p className="text-sm text-gray-500 pt-2">
-                          Submitted: {format(new Date(proposal.createdAt), 'PPP')}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-gray-50 pt-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() =>{ 
-                        handleViewDetails(proposal._id, proposal.formId)}}
-                      className="w-full"
-                    >
-                      View Details
-                    </Button>
-                  </CardFooter>
-                </Card>
-)  )}
+              {proposals
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .slice(0, 6)
+                .map((proposal) => renderProposalCard(proposal))
+              }
             </div>
           </TabsContent>
         </Tabs>

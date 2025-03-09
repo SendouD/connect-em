@@ -16,12 +16,6 @@ export const FormPreview = ({ form }) => {
               {field.label}
               {field.validate?.required && <span className="text-destructive ml-1">*</span>}
             </Label>
-            {field.type === "textfield" && (
-              <Input type="text" disabled placeholder={field.placeholder || ""} className="bg-background/50" />
-            )}
-            {field.type === "textarea" && (
-              <Textarea disabled placeholder={field.placeholder || ""} className="bg-background/50 h-20" />
-            )}
             {field.inputType === "date" && <Input type="date" disabled className="bg-background/50" />}
             {field.type === "number" && (
               <Input type="number" disabled placeholder={field.placeholder || ""} className="bg-background/50" />
@@ -44,6 +38,12 @@ export const FormPreview = ({ form }) => {
                   </div>
                 ))}
               </div>
+            )}
+            {field.type === "textfield" && field.inputType === "text" && (
+              <Input type="text" disabled placeholder={field.placeholder || ""} className="bg-background/50" />
+            )}
+            {field.type === "textarea" && field.inputType === "text" && (
+              <Textarea disabled placeholder={field.placeholder || ""} className="bg-background/50 h-20" />
             )}
             {field.type === "select" && (
               <Select disabled>

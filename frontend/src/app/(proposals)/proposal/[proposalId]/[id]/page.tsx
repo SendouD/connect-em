@@ -285,7 +285,7 @@ export default function DynamicForm() {
         throw new Error("Failed to save form");
       }
 
-      router.push(`/`);
+      router.push(`/dashboard`);
       console.log("successfully submitted form");
     } catch (error) {
       console.error("Error submitting form:", error);

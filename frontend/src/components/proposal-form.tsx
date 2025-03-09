@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast, Toaster } from "sonner"
 import FormSidebar from "./form-sidebar"
+import { useRouter } from "next/navigation"
 
 interface FormElementValidation {
   required: boolean
@@ -511,6 +512,7 @@ const ProposalFormBuilder = (props) => {
   const [elements, setElements] = useState<FormElement[]>([])
   const [formName, setFormName] = useState("New Form")
   const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
   let formId = props.formId
 
 
@@ -659,52 +661,6 @@ const ProposalFormBuilder = (props) => {
 
     const saveFormToDatabase = async () => {
         try {
-          setIsSaving(true)
-          const formData = prepareFormData()
-          if(formData.components.length === 0) {
-            toast.error("Form must have at least one field")
-            return
-          }
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/`, {
-            method: formId ? "PUT" : "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-            credentials: "include",
-          })
-    
-          if (!response.ok) {
-            throw new Error("Failed to save form")
-          }
-    
-          const savedForm = await response.json()
-          let formId: any = savedForm._id
-    
-          toast.success(formId ? "Form updated successfully" : "Form saved successfully", {
-            description: formId
-              ? "Your form is successfully updated"
-              : "New form is successfully created",
-            icon: <Save className="h-5 w-5" />,
-            duration: 3000,
-          })
-    
-          if (!formId) {
-            setTimeout(() => {
-              window.location.reload()
-            }, 1500)
-          }
-        } catch (error) {
-          console.error("Error saving form:", error)
-          toast.error("Failed to save form", {
-            description: "There was an error saving your form to the database",
-            duration: 4000,
-          })
-        } finally {
-          setIsSaving(false)
-        }
-
-        try {
             setIsSaving(true)
             const formData = prepareFormData()
 
@@ -725,6 +681,7 @@ const ProposalFormBuilder = (props) => {
             formId = savedForm._id
 
             toast.success(`Form ${formId ? 'updated' : 'saved'} successfully`);
+            router.push('/dashboard');
         } catch (error) {
             console.error('Error saving form:', error)
             toast.error("Failed to save form to database");

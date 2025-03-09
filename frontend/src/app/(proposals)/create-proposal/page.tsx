@@ -207,7 +207,6 @@ function ProposalPage() {
         const result = await response.json();
         
         if (response.ok) {
-          alert("Proposal submitted successfully!");
 
           setProposalData({
             title: "",
@@ -220,11 +219,10 @@ function ProposalPage() {
           });
           setCurrentStep(1);
         } else {
-          alert(`Error: ${result.message || "Failed to submit Grant"}`);
+          console.log("Failed to submit Grant");
         }
       } catch (error) {
         console.error("Error submitting grant:", error);
-        alert("Failed to submit grant. Please try again.");
       }
 
       router.push(`/proposal-form/${formId}`);
@@ -259,7 +257,6 @@ function ProposalPage() {
         const result = await response.json();
         
         if (response.ok) {
-          alert("Proposal submitted successfully!");
 
           setProposalData({
             title: "",
@@ -272,11 +269,10 @@ function ProposalPage() {
           });
           setCurrentStep(1);
         } else {
-          alert(`Error: ${result.message || "Failed to submit proposal"}`);
+          console.log("Failed to submit Grant");
         }
       } catch (error) {
         console.error("Error submitting grant:", error);
-        alert("Failed to submit grant. Please try again.");
       }
     }
   };

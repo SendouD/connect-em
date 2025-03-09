@@ -29,9 +29,9 @@ export const FormPreviewDialog = ({ isOpen, setIsOpen, form }) => {
                 {field.validate?.required && <span className="text-destructive ml-1">*</span>}
               </Label>
 
-              {field.type === "textfield" && <Input type="text" disabled placeholder={field.placeholder || ""} />}
+              {field.type === "textfield" && field.inputType === "text" && <Input type="text" disabled placeholder={field.placeholder || ""} />}
 
-              {field.type === "textarea" && (
+              {field.type === "textarea" && field.inputType === "text" && (
                 <Textarea disabled placeholder={field.placeholder || ""} className="min-h-[120px]" />
               )}
 
