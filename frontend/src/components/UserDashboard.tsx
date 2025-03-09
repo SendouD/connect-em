@@ -87,7 +87,7 @@ function Page() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Your Submitted Proposals</h1>
+      <h1 className="text-3xl font-bold mb-6">Submitted Applications</h1>
       
       {loading ? (
         <div className="flex items-center justify-center h-64">

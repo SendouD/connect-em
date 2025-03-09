@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,12 +13,29 @@ const Header = () => {
   const pathname = usePathname()
   const { user, isAuthenticated } = useAuth()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Proposals", href: "/investor-proposals" },
+    { name: "Grants", href: "/investor-proposals" },
     { name: "Pitches", href: "/founder-pitches" },
   ]
 
@@ -76,7 +93,7 @@ const Header = () => {
 
         <div className="hidden md:flex md:items-center md:gap-x-4">
             {isAuthenticated ? (
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                 <div
                     onClick={toggleDropdown}
                     className="flex items-center gap-2 cursor-pointer"
@@ -94,29 +111,24 @@ const Header = () => {
                 {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                     <ul className="py-1">
-                        {/* <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/profile" className="block px-4 py-2 hover:bg-gray-100">
-                                My Profile
-                            </Link>
-                        </li> */}
                         <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-form" className="block px-4 py-2 hover:bg-gray-100">
-                                Create/Edit forms
+                                Grant/EIR templates
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-proposal" className="block px-4 py-2 hover:bg-gray-100">
-                                Create a proposal
+                                Create a Grant
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/create-pitch" className="block px-4 py-2 hover:bg-gray-100">
-                                Create a pitch
+                                Create a Pitch
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
                             <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">
-                             dashboard
+                              Dashboard
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
@@ -199,18 +211,27 @@ const Header = () => {
                 </nav>
 
                 <div className="mt-auto border-t pt-6 flex flex-col gap-3">
-                  <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start gap-2">
+                  {!isAuthenticated ? (
+                    <>
+                      <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start gap-2">
+                          <LogIn className="h-4 w-4" />
+                          <span>Sign In</span>
+                        </Button>
+                      </Link>
+                      <Link href="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
+                        <Button className="w-full justify-start gap-2">
+                          <User className="h-4 w-4" />
+                          <span>Sign Up</span>
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Button onClick={logout} variant="outline" className="w-full justify-start gap-2">
                       <LogIn className="h-4 w-4" />
-                      <span>Sign In</span>
+                      <span>Log Out</span>
                     </Button>
-                  </Link>
-                  <Link href="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full justify-start gap-2">
-                      <User className="h-4 w-4" />
-                      <span>Sign Up</span>
-                    </Button>
-                  </Link>
+                  )}
                 </div>
               </div>
             </SheetContent>

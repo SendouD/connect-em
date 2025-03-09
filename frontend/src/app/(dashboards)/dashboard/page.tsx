@@ -229,7 +229,6 @@ export default function InvestorDashboard() {
             );
         }
 
-        // Handle file link
         if (typeof value === 'string' && value.includes('.')) {
             return (
                 <div className="mt-2">
@@ -378,7 +377,7 @@ export default function InvestorDashboard() {
                             </div>
 
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500 mb-2">Form Submissions</h3>
+                                <h3 className="text-sm font-medium text-gray-500 mb-2">Application Submissions</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                                     {selectedApplication.submittedData && Object.entries(selectedApplication.submittedData).map(([key, value]) => (
                                         <div key={key} className="space-y-2">
@@ -402,7 +401,7 @@ export default function InvestorDashboard() {
                     className="mb-6"
                     onClick={() => setSelectedProposal(null)}
                 >
-                    <ChevronLeft className="h-4 w-4 mr-2" /> Back to proposals
+                    <ChevronLeft className="h-4 w-4 mr-2" /> Back to Grants
                 </Button>
 
                 <Card>
@@ -416,7 +415,7 @@ export default function InvestorDashboard() {
                     <CardContent>
                         {applications.length === 0 ? (
                             <div className="text-center py-12 text-muted-foreground">
-                                No applications received yet for this proposal.
+                                No applications received yet for this Grant.
                             </div>
                         ) : (
                             <> <ApplicationsGraph applications={applications} />
@@ -493,7 +492,7 @@ export default function InvestorDashboard() {
         <div className="container mx-auto py-6">
             <Tabs defaultValue="grants">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">Dashboard</h1>
+                    <h1 className="text-3xl font-bold">Dashboard</h1>
                     <TabsList>
                         <TabsTrigger value="grants">Grants</TabsTrigger>
                         <TabsTrigger value="applied-grants">Applied Grants</TabsTrigger>
@@ -505,16 +504,16 @@ export default function InvestorDashboard() {
                 <TabsContent value="grants">
                 <div className="container mx-auto py-8 px-4">
 
-                <h1 className="text-3xl font-bold mb-6">Your Grant Programms</h1>
+                <h1 className="text-3xl font-bold mb-6">Posted Grants</h1>
 
                     {proposals.length === 0 ? (
                         <Card>
                             <CardContent className="text-center py-12">
                                 <p className="text-muted-foreground mb-4">
-                                    You haven't created any investment proposals yet.
+                                    You haven't posted any Grants yet.
                                 </p>
                                 <Button onClick={() => router.push('/create-proposal')}>
-                                    Create Your First Proposal
+                                    Post Your First Grant
                                 </Button>
                             </CardContent>
                         </Card>

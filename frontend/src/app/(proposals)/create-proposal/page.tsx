@@ -58,7 +58,7 @@ function ProposalPage() {
     investments: [
       { domain: "", type: "", amount: "" }
     ],
-    selectedForm: "new",
+    selectedForm: "old",
     formId: "",
     formName: "New Form",
     isPublic: true
@@ -162,7 +162,7 @@ function ProposalPage() {
   },[proposalData])
   
   const submitProposal = async () => {
-    console.log("Submitting proposal:", proposalData);
+    console.log("Submitting Grant:", proposalData);
 
     let formId;
     
@@ -220,11 +220,11 @@ function ProposalPage() {
           });
           setCurrentStep(1);
         } else {
-          alert(`Error: ${result.message || "Failed to submit proposal"}`);
+          alert(`Error: ${result.message || "Failed to submit Grant"}`);
         }
       } catch (error) {
-        console.error("Error submitting proposal:", error);
-        alert("Failed to submit proposal. Please try again.");
+        console.error("Error submitting grant:", error);
+        alert("Failed to submit grant. Please try again.");
       }
 
       router.push(`/proposal-form/${formId}`);
@@ -275,8 +275,8 @@ function ProposalPage() {
           alert(`Error: ${result.message || "Failed to submit proposal"}`);
         }
       } catch (error) {
-        console.error("Error submitting proposal:", error);
-        alert("Failed to submit proposal. Please try again.");
+        console.error("Error submitting grant:", error);
+        alert("Failed to submit grant. Please try again.");
       }
     }
   };
@@ -302,18 +302,18 @@ function ProposalPage() {
     <div className="container mx-auto py-8 max-w-3xl">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-2xl">Create New Proposal</CardTitle>
-          <CardDescription>Complete the two-step process to submit your investment proposal</CardDescription>
+          <CardTitle className="text-2xl">Create New Grant</CardTitle>
+          <CardDescription>Complete the two-step process to submit your grant</CardDescription>
         </CardHeader>
         
         <CardContent>
           <div className="mb-6">
             <div className="flex justify-between mb-2">
               <div className={`flex-1 text-center p-2 rounded-l-md ${currentStep === 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                Step 1: Proposal Details
+                Step 1: Grant Details
               </div>
               <div className={`flex-1 text-center p-2 rounded-r-md ${currentStep === 2 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                Step 2: Form Selection
+                Step 2: Template Selection
               </div>
             </div>
           </div>
@@ -322,10 +322,10 @@ function ProposalPage() {
             <>
               <div className="space-y-4 mb-6">
                 <div>
-                  <Label htmlFor="proposal-title">Proposal Title</Label>
+                  <Label htmlFor="proposal-title">Grant Title</Label>
                   <Input 
                     id="proposal-title" 
-                    placeholder="Enter a title for your proposal"
+                    placeholder="Enter a title for your grant"
                     value={proposalData.title}
                     onChange={handleTitleChange}
                     className="mt-1"
@@ -333,10 +333,10 @@ function ProposalPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="proposal-description">Proposal Description</Label>
+                  <Label htmlFor="proposal-description">Grant Description</Label>
                   <Textarea 
                     id="proposal-description" 
-                    placeholder="Provide a brief description of your investment proposal"
+                    placeholder="Provide a brief description of your investment grant"
                     value={proposalData.description}
                     onChange={handleDescriptionChange}
                     className="mt-1"
@@ -398,9 +398,9 @@ function ProposalPage() {
               className="gap-2"
             >
               {proposalData.selectedForm === "new" ? (
-                <>Continue to Form Builder <ArrowRight className="h-4 w-4" /></>
+                <>Continue to Template Builder <ArrowRight className="h-4 w-4" /></>
               ) : (
-                <>Submit Proposal <Save className="h-4 w-4" /></>
+                <>Submit Grant <Save className="h-4 w-4" /></>
               )}
             </Button>
           )}

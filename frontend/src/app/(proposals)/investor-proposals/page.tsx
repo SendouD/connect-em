@@ -87,7 +87,7 @@ function ProposalsPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Investor Proposals</h1>
+      <h1 className="text-3xl font-bold mb-6">Grants</h1>
       {proposals.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {proposals.map((proposal) => (

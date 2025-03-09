@@ -615,7 +615,7 @@ function CreatePitchPage() {
     <div className="container mx-auto py-8">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>Create New Pitch</CardTitle>
+          <CardTitle className="text-2xl">Create New Pitch</CardTitle>
           <CardDescription>Select a form and provide details for your pitch</CardDescription>
         </CardHeader>
         

@@ -23,7 +23,7 @@ export default function Home() {
           <Button size="lg" className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/create-proposal')}>
             I'm an Investor <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-          <Button size="lg" variant="outline" onClick={() => router.push('/investor-proposals')}>
+          <Button size="lg" variant="outline" onClick={() => router.push('/create-pitch')}>
             I'm a Founder <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
@@ -38,7 +38,7 @@ export default function Home() {
               <div className="bg-blue-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <TrendingUp className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Create Investment Proposals</h3>
+              <h3 className="text-xl font-bold mb-2">Create Grants</h3>
               <p className="text-gray-600">
                 Investors can create detailed investment proposals specifying domains, 
                 investment types, and criteria for potential founders.
