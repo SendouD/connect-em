@@ -1,75 +1,155 @@
-"use client"
+"use client";
 
-import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Calendar, Mail, FileText, ExternalLink, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import Image from "next/image"
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertCircle,
+  Calendar,
+  Mail,
+  FileText,
+  ExternalLink,
+  ArrowLeft,
+  CheckCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import { useAuth } from '@/providers/AuthProvider'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Heart } from "lucide-react";
+import { InvestorsInterested } from "@/components/interested-investors";
 
-interface Pitch {
-  _id: string
-  domain: string
-  type: string
-  email: string
-  formId: string
-  createdAt: string
-  investors: string[]
-  submittedData?: Record<string, any>
-  isPaid: boolean
+interface InvestorsInterestedProps {
+  investors: string[];
+  currentUserEmail?: string;
+  onShowInterest: () => Promise<void>;
+  isInterested: boolean;
 }
 
+
+
+interface Pitch {
+  _id: string;
+  domain: string;
+  type: string;
+  email: string;
+  formId: string;
+  createdAt: string;
+  investors: string[];
+  submittedData?: Record<string, any>;
+  isPaid: boolean;
+}
+
+
+
 export default function PitchDetailPage() {
-  const [pitch, setPitch] = useState<Pitch | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string>("")
-  const router = useRouter()
-  const { id } = useParams()
+  const [pitch, setPitch] = useState<Pitch | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const router = useRouter();
+  const { id } = useParams();
+  const [isInterest, setIsInterest] = useState<boolean>(false);
+  const { user, isAuthenticated, authLoading } = useAuth();
+
 
   useEffect(() => {
     const fetchPitch = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pitch/${id}`)
-        const data = await response.json()
+        console.log(user);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pitch/${id}`
+        );
+        const data = await response.json();
         if (response.ok) {
-          setPitch(data)
+          setPitch(data);
+          console.log(data)
+          // Check if the current user's email is in the investors array
+           if (!authLoading && isAuthenticated && user?.email)  {
+            console.log("hitt")
+            console.log(data.investors.includes(user.email));
+
+            setIsInterest(data.investors.includes(user.email));
+
+          }
         } else {
-          setError(data.message || "Failed to fetch pitch details")
+          setError(data.message || "Failed to fetch pitch details");
         }
       } catch (err) {
-        console.error(err)
-        setError("An error occurred while fetching pitch details")
+        console.error(err);
+        setError("An error occurred while fetching pitch details");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchPitch()
-  }, [id])
+    fetchPitch();
+  }, [id,isAuthenticated,authLoading,user]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const isImageUrl = (url: string) => {
-    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url)
-  }
+    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+  };
+
+  const handleInterest = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pitch/investor-interest/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+      setPitch((prev) => prev ? { ...prev, investors: data.investors } : null);
+      setIsInterest(true);
+    } catch (error) {
+      console.error(error);
+      setError("An error occurred while updating pitch interest");
+    }
+  };
+  
+ 
+
 
   const renderSubmittedData = () => {
-    if (!pitch?.submittedData) return null
+    if (!pitch?.submittedData) return null;
 
     return Object.entries(pitch.submittedData).map(([label, value], index) => {
       // Handle array of links
-      if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
+      if (
+        Array.isArray(value) &&
+        value.length > 0 &&
+        typeof value[0] === "string"
+      ) {
         return (
           <div key={index} className="space-y-3 mb-6">
             <h3 className="text-lg font-medium">{label}</h3>
@@ -77,7 +157,10 @@ export default function PitchDetailPage() {
               {value.map((link: string, linkIndex: number) => {
                 if (isImageUrl(link)) {
                   return (
-                    <div key={linkIndex} className="relative border rounded-lg overflow-hidden group">
+                    <div
+                      key={linkIndex}
+                      className="relative border rounded-lg overflow-hidden group"
+                    >
                       <div className="aspect-video relative">
                         <Image
                           src={link || "/placeholder.svg"}
@@ -97,7 +180,7 @@ export default function PitchDetailPage() {
                         </a>
                       </div>
                     </div>
-                  )
+                  );
                 } else {
                   return (
                     <a
@@ -108,15 +191,18 @@ export default function PitchDetailPage() {
                       className="flex items-center p-3 border rounded-lg hover:bg-muted transition-colors"
                     >
                       <FileText className="h-5 w-5 mr-2 text-blue-500" />
-                      <span className="text-sm truncate flex-1">Document {linkIndex + 1}</span>
+                      <span className="text-sm truncate flex-1">
+                        Document {linkIndex + 1}
+                      </span>
                       <ExternalLink className="h-4 w-4 text-muted-foreground" />
                     </a>
-                  )
+
+                  );
                 }
               })}
             </div>
           </div>
-        )
+        );
       }
 
       return (
@@ -124,9 +210,9 @@ export default function PitchDetailPage() {
           <h3 className="text-lg font-medium">{label}</h3>
           <p className="text-muted-foreground mt-1">{String(value)}</p>
         </div>
-      )
-    })
-  }
+      );
+    });
+  };
 
   if (loading) {
     return (
@@ -157,7 +243,7 @@ export default function PitchDetailPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -168,12 +254,16 @@ export default function PitchDetailPage() {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <Button variant="outline" className="mt-4" onClick={() => router.back()}>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Go Back
         </Button>
       </div>
-    )
+    );
   }
 
   if (!pitch) {
@@ -182,21 +272,32 @@ export default function PitchDetailPage() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Not Found</AlertTitle>
-          <AlertDescription>The requested pitch could not be found.</AlertDescription>
+          <AlertDescription>
+            The requested pitch could not be found.
+          </AlertDescription>
         </Alert>
-        <Button variant="outline" className="mt-4" onClick={() => router.back()}>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => router.back()}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Go Back
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center">
-          <Button variant="outline" size="icon" onClick={() => router.back()} className="mr-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => router.back()}
+            className="mr-4"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-2xl font-bold">Pitch Details</h1>
@@ -207,15 +308,26 @@ export default function PitchDetailPage() {
       </div>
 
       <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl">{pitch.domain}</CardTitle>
-          <CardDescription className="flex items-center">
-            <Badge variant="outline" className="mr-2">
-              {pitch.type}
-            </Badge>
-            <span className="text-sm">Submitted on {formatDate(pitch.createdAt)}</span>
-          </CardDescription>
-        </CardHeader>
+       
+<CardHeader>
+  <CardTitle className="text-2xl">{pitch.domain}</CardTitle>
+  <CardDescription className="flex items-center">
+    <Badge variant="outline" className="mr-2">
+      {pitch.type}
+    </Badge>
+    <span className="text-sm">
+      Submitted on {formatDate(pitch.createdAt)}
+    </span>
+  </CardDescription>
+  
+  <InvestorsInterested 
+    investors={pitch.investors || []}
+    currentUserEmail={user?.email}
+    onShowInterest={handleInterest}
+    isInterested={isInterest}
+  />
+</CardHeader>
+
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -256,5 +368,5 @@ export default function PitchDetailPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
