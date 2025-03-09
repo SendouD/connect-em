@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/copy-template/:id', userAuth, copyTemplate);
 router.post('/create', userAuth, createPitch);
 router.get('/get-all', getAllPitches);
-router.get('/:id', getPitch)
+router.get('/:id', getPitch);
 router.patch('/investor-interest/:id', userAuth, investorInterest);
 
 export default router;

@@ -86,7 +86,6 @@ export default function FormSidebar({ setElements, setFormName, setFormId }: For
       key: component.key,
       placeholder: component.placeholder || "",
       defaultValue: component.defaultValue || "",
-      // Create deep copies of arrays to avoid reference issues
       options: component.options ? [...component.options] : [],
       tableView: component.tableView !== false,
       inputType: component.inputType || "text",
@@ -99,7 +98,6 @@ export default function FormSidebar({ setElements, setFormName, setFormId }: For
         customPrivate: false,
       },
       imageSize: component.fileMaxSize || "",
-      // Create deep copies of arrays to avoid reference issues
       fileTypes: component.fileTypes ? [...component.fileTypes] : [],
       multiple: component.multiple || false,
     }))

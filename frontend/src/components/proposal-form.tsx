@@ -515,21 +515,28 @@ const ProposalFormBuilder = (props) => {
 
 
     const transformFormElements = (components: any[]): FormElement[] => {
-      return components.map((component) => ({
-        id: `${component.key}-${Date.now()}`,
-        label: component.label || '',
-        type: component.type || 'text',
+      return components.map((component, index) => ({
+        id: `${component.label}-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+        label: component.label || "",
+        type: component.type || "textfield",
         key: component.key,
-        placeholder: component.placeholder,
-        defaultValue: component.defaultValue,
-        options: component.options,
-        tableView: component.tableView,
-        inputType: component.inputType,
-        validate: component.validate,
-        fileTypes: component.fileTypes,
-        maxSize: component.maxSize,
-        imageSize: component.imageSize,
-      }));
+        placeholder: component.placeholder || "",
+        defaultValue: component.defaultValue || "",
+        options: component.options ? [...component.options] : [],
+        tableView: component.tableView !== false,
+        inputType: component.inputType || "text",
+        validate: component.validate ? { ...component.validate } : {
+          required: false,
+          minLength: "",
+          maxLength: "",
+          pattern: "",
+          custom: "",
+          customPrivate: false,
+        },
+        imageSize: component.fileMaxSize || "",
+        fileTypes: component.fileTypes ? [...component.fileTypes] : [],
+        multiple: component.multiple || false,
+      }))
     };
 
     useEffect(() => {
