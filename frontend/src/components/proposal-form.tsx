@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { GripVertical, X, Plus, ChevronDown, ChevronUp, Save, Image as ImageIcon } from "lucide-react"
+import { GripVertical, X, Plus, ChevronDown, ChevronUp, Save, ImageIcon, FileText } from 'lucide-react'
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner"
 import FormSidebar from "./form-sidebar"
 
 interface FormElementValidation {
@@ -69,8 +69,22 @@ const formElements: FormElement[] = [
   { id: "radio", label: "Radio Button", type: "radio", options: ["Option 1", "Option 2"] },
   { id: "checkbox", label: "Checkbox", type: "checkbox", options: ["Option A", "Option B"] },
   { id: "select", label: "Select Box", type: "select", options: ["Choice 1", "Choice 2"] },
-  { id: "file", label: "Image Upload", type: "file", key: "imageupload", fileTypes: ["jpg", "jpeg", "png", "gif"], multiple: false },
-  { id: "document", label: "Document Upload", type: "file", key: "documentupload", fileTypes: ["pdf", "doc", "docx", "txt"], multiple: false },
+  {
+    id: "file",
+    label: "Image Upload",
+    type: "file",
+    key: "imageupload",
+    fileTypes: ["jpg", "jpeg", "png", "gif"],
+    multiple: false,
+  },
+  {
+    id: "document",
+    label: "Document Upload",
+    type: "file",
+    key: "documentupload",
+    fileTypes: ["pdf", "doc", "docx", "txt"],
+    multiple: false,
+  },
 ]
 
 const DraggableField: React.FC<FormElement> = ({ id, label }) => {
@@ -337,15 +351,15 @@ const SortableItem: React.FC<{
                         placeholder="Type to add (e.g. jpg, png)"
                         className="flex-grow"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const input = e.target as HTMLInputElement;
-                            const value = input.value.trim().toLowerCase();
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            const input = e.target as HTMLInputElement
+                            const value = input.value.trim().toLowerCase()
                             if (value && !(item.fileTypes || []).includes(value)) {
                               updateElement(item.id, {
-                                fileTypes: [...(item.fileTypes || []), value]
-                              });
-                              input.value = '';
+                                fileTypes: [...(item.fileTypes || []), value],
+                              })
+                              input.value = ""
                             }
                           }
                         }}
@@ -354,13 +368,13 @@ const SortableItem: React.FC<{
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          const input = document.getElementById(`${item.id}-file-type-input`) as HTMLInputElement;
-                          const value = input.value.trim().toLowerCase();
+                          const input = document.getElementById(`${item.id}-file-type-input`) as HTMLInputElement
+                          const value = input.value.trim().toLowerCase()
                           if (value && !(item.fileTypes || []).includes(value)) {
                             updateElement(item.id, {
-                              fileTypes: [...(item.fileTypes || []), value]
-                            });
-                            input.value = '';
+                              fileTypes: [...(item.fileTypes || []), value],
+                            })
+                            input.value = ""
                           }
                         }}
                       >
@@ -427,9 +441,7 @@ const SortableItem: React.FC<{
                 <p className="text-sm text-muted-foreground">
                   {item.placeholder || `Upload ${item.label}`}
                   {item.fileTypes && item.fileTypes.length > 0 && (
-                    <span className="block mt-1 text-xs">
-                      Allowed: {item.fileTypes.map(t => `.${t}`).join(", ")}
-                    </span>
+                    <span className="block mt-1 text-xs">Allowed: {item.fileTypes.map((t) => `.${t}`).join(", ")}</span>
                   )}
                 </p>
               </div>
@@ -494,12 +506,13 @@ const SortableItem: React.FC<{
   )
 }
 
-const ProposalFormBuilder = (props: { formId: string | undefined, formName: string | undefined }) => {
-    const { isOver, setNodeRef } = useDroppable({ id: "form-canvas" })
-    const [elements, setElements] = useState<FormElement[]>([])
-    const [formName, setFormName] = useState(props.formName)
-    const [isSaving, setIsSaving] = useState(false)
-    let formId = props.formId
+const ProposalFormBuilder = (props) => {
+  const { isOver, setNodeRef } = useDroppable({ id: "form-canvas" })
+  const [elements, setElements] = useState<FormElement[]>([])
+  const [formName, setFormName] = useState("New Form")
+  const [isSaving, setIsSaving] = useState(false)
+  let formId = props.formId
+
 
     const transformFormElements = (components: any[]): FormElement[] => {
       return components.map((component) => ({
@@ -553,85 +566,83 @@ const ProposalFormBuilder = (props: { formId: string | undefined, formName: stri
         console.log("Form elements:", elements);
     },[elements])
 
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event
-        if (!over) return
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) return
 
-        setElements((prev) => {
-        const oldIndex = prev.findIndex((ele) => ele.id === active.id)
-        const newIndex = prev.findIndex((ele) => ele.id === over.id)
+    setElements((prev) => {
+      const oldIndex = prev.findIndex((ele) => ele.id === active.id)
+      const newIndex = prev.findIndex((ele) => ele.id === over.id)
 
-        if (oldIndex === -1) {
-            const field = formElements.find((f) => f.id === active.id)
-            if (!field) return prev
+      if (oldIndex === -1) {
+        const field = formElements.find((f) => f.id === active.id)
+        if (!field) return prev
 
-            const newField = {
-            ...field,
-            id: `${field.id}-${Date.now()}`,
-            key: field.label.toLowerCase().replace(/\s+/g, ""),
-            placeholder: "",
-            defaultValue: "",
-            tableView: true,
-            options: field.options ? [...field.options] : undefined,
-            validate: { ...defaultValidation },
-            fileTypes: field.fileTypes,
-            maxSize: field.maxSize,
-            imageSize: field.imageSize,
-            }
-
-            return [...prev, newField]
+        const newField = {
+          ...field,
+          id: `${field.label}-${Date.now()}`,
+          key: field.key || field.label.toLowerCase().replace(/\s+/g, ""),
+          placeholder: "",
+          defaultValue: "",
+          tableView: true,
+          options: field.options ? [...field.options] : undefined,
+          fileTypes: field.fileTypes ? [...field.fileTypes] : undefined,
+          multiple: field.multiple,
+          validate: { ...defaultValidation },
         }
 
-        return arrayMove(prev, oldIndex, newIndex)
-        })
-    }
+        return [...prev, newField]
+      }
 
-    const updateElement = (id: string, data: Partial<FormElement>) => {
-        setElements((prev) => prev.map((ele) => (ele.id === id ? { ...ele, ...data } : ele)))
-    }
+      return arrayMove(prev, oldIndex, newIndex)
+    })
+  }
 
-    const removeElement = (id: string) => {
-        setElements((prev) => prev.filter((ele) => ele.id !== id))
-    }
+  const updateElement = (id: string, data: Partial<FormElement>) => {
+    setElements((prev) => prev.map((ele) => (ele.id === id ? { ...ele, ...data } : ele)))
+  }
 
-    const prepareFormData = (): FormData => {
-        return {
-        id: formId,
-        name: "" + formName?.toString(),
-        components: elements.map((ele) => ({
-            input: true,
-            tableView: ele.tableView !== false,
-            inputType: ele.inputType || "text",
-            inputMask: "",
-            label: ele.label,
-            key: ele.key || ele.label.toLowerCase().replace(/\s+/g, ""),
-            placeholder: ele.placeholder || "",
-            prefix: "",
-            suffix: "",
-            multiple: ele.defaultValue === "multiple",
-            defaultValue: ele.defaultValue || "",
-            protected: false,
-            unique: false,
-            persistent: true,
-            validate: ele.validate || defaultValidation,
-            type: ele.type,
-            tags: [],
-            lockKey: true,
-            isNew: false,
-            options: ele.options ? ele.options : [],
-            fileTypes: ele.fileTypes,
-            maxSize: ele.maxSize,
-            imageSize: ele.imageSize,
-        })),
-        }
+  const removeElement = (id: string) => {
+    setElements((prev) => prev.filter((ele) => ele.id !== id))
+  }
+
+  const prepareFormData = (): FormData => {
+    return {
+      id: formId,
+      name: formName,
+      components: elements.map((ele) => ({
+        input: true,
+        tableView: ele.tableView !== false,
+        inputType: ele.inputType || "text",
+        inputMask: "",
+        label: ele.label,
+        key: ele.key || ele.label.toLowerCase().replace(/\s+/g, ""),
+        placeholder: ele.placeholder || "",
+        prefix: "",
+        suffix: "",
+        multiple: ele.multiple || false,
+        defaultValue: ele.defaultValue || "",
+        protected: false,
+        unique: false,
+        persistent: true,
+        validate: ele.validate || defaultValidation,
+        type: ele.type,
+        tags: [],
+        lockKey: true,
+        isNew: false,
+        options: ele.options ? ele.options : [],
+        fileTypes: ele.fileTypes ? ele.fileTypes : [],
+        fileMaxSize: ele.imageSize || "5",
+      })),
     }
+  }
 
     const exportJSON = () => {
         const formData = prepareFormData()
         const dataStr = JSON.stringify(formData, null, 2)
         const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`
 
-        const exportFileDefaultName = `${formName?.toLowerCase().replace(/\s+/g, "-")}.json`
+        const exportFileDefaultName = `${formName.toLowerCase().replace(/\s+/g, "-")}.json`
 
         const linkElement = document.createElement("a")
         linkElement.setAttribute("href", dataUri)
@@ -641,9 +652,55 @@ const ProposalFormBuilder = (props: { formId: string | undefined, formName: stri
 
     const saveFormToDatabase = async () => {
         try {
+          setIsSaving(true)
+          const formData = prepareFormData()
+          if(formData.components.length === 0) {
+            toast.error("Form must have at least one field")
+            return
+          }
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/`, {
+            method: formId ? "PUT" : "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+            credentials: "include",
+          })
+    
+          if (!response.ok) {
+            throw new Error("Failed to save form")
+          }
+    
+          const savedForm = await response.json()
+          let formId: any = savedForm._id
+    
+          toast.success(formId ? "Form updated successfully" : "Form saved successfully", {
+            description: formId
+              ? "Your form is successfully updated"
+              : "New form is successfully created",
+            icon: <Save className="h-5 w-5" />,
+            duration: 3000,
+          })
+    
+          if (!formId) {
+            setTimeout(() => {
+              window.location.reload()
+            }, 1500)
+          }
+        } catch (error) {
+          console.error("Error saving form:", error)
+          toast.error("Failed to save form", {
+            description: "There was an error saving your form to the database",
+            duration: 4000,
+          })
+        } finally {
+          setIsSaving(false)
+        }
+
+        try {
             setIsSaving(true)
             const formData = prepareFormData()
-            console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form`, {
                 method: formId ? 'PUT' : 'POST',
                 headers: {
@@ -669,93 +726,106 @@ const ProposalFormBuilder = (props: { formId: string | undefined, formName: stri
         }
     }
 
-    return (
-        <div className="flex h-screen">
+  return (
+    <div className="flex h-screen">
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          duration: 3000,
+          className: "rounded-md shadow-lg border border-border",
+          style: {
+            padding: '16px',
+          }
+        }}
+      />
 
-            <div className="flex-1 p-4 bg-background">
-                <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <div className="p-4 bg-background">
-                        <div className="flex justify-between items-center mb-6 bg-card p-4 rounded-lg shadow-sm">
-                        <div className="flex items-center gap-4 w-1/2">
-                            <Label htmlFor="form-name" className="whitespace-nowrap font-medium">
-                            Form Name:
-                            </Label>
-                            <Input
-                            id="form-name"
-                            value={formName}
-                            onChange={(e) => setFormName(e.target.value)}
-                            className="flex-grow"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button 
-                                variant="default" 
-                                onClick={saveFormToDatabase} 
-                                disabled={isSaving}
-                                className="flex items-center gap-2"
-                            >
-                            <Save className="h-4 w-4" />
-                            {isSaving ? 'Saving...' : (formId ? 'Update Form' : 'Save to Database')}
-                            </Button>
-                            <Button variant="outline" onClick={exportJSON} className="flex items-center gap-2">
-                            <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 15 15"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                            >
-                                <path
-                                d="M7.50005 1.04999C7.74858 1.04999 7.95005 1.25146 7.95005 1.49999V8.41359L10.1819 6.18179C10.3576 6.00605 10.6425 6.00605 10.8182 6.18179C10.994 6.35753 10.994 6.64245 10.8182 6.81819L7.81825 9.81819C7.64251 9.99392 7.35759 9.99392 7.18185 9.81819L4.18185 6.81819C4.00611 6.64245 4.00611 6.35753 4.18185 6.18179C4.35759 6.00605 4.64251 6.00605 4.81825 6.18179L7.05005 8.41359V1.49999C7.05005 1.25146 7.25152 1.04999 7.50005 1.04999ZM2.5 10C2.77614 10 3 10.2239 3 10.5V12C3 12.5539 3.44565 13 3.99635 13H11.0012C11.5529 13 12 12.5539 12 12V10.5C12 10.2239 12.2239 10 12.5 10C12.7761 10 13 10.2239 13 10.5V12C13 13.1046 12.1049 14 11.0012 14H3.99635C2.89178 14 2 12.1046 2 12V10.5C2 10.2239 2.22386 10 2.5 10Z"
-                                fill="currentColor"
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                ></path>
-                            </svg>
-                            Export JSON
-                            </Button>
-                        </div>
-                        </div>
-
-                        <div className="flex gap-6">
-                        <Card className="w-1/4 p-4 h-fit sticky top-4">
-                            <h2 className="text-lg font-semibold mb-4">Form Elements</h2>
-                            <p className="text-sm text-muted-foreground mb-4">Drag and drop elements onto the form builder</p>
-                            <div className="space-y-1">
-                            {formElements.map((item) => (
-                                <DraggableField key={item.id} {...item} />
-                            ))}
-                            </div>
-                        </Card>
-
-                        <div
-                            ref={setNodeRef}
-                            className={`w-3/4 min-h-[600px] border-2 border-dashed rounded-lg p-6 transition-colors ${
-                            isOver ? "bg-muted/70" : "bg-background"
-                            }`}
-                        >
-                            <h2 className="text-lg font-semibold mb-4">Form Builder</h2>
-                            <SortableContext items={elements.map((ele) => ele.id)} strategy={rectSortingStrategy}>
-                            {elements.map((item) => (
-                                <SortableItem key={item.id} item={item} updateElement={updateElement} removeElement={removeElement} />
-                            ))}
-                            </SortableContext>
-                            {elements.length === 0 && (
-                            <div className="text-center text-muted-foreground py-12 flex flex-col items-center justify-center">
-                                <Plus className="h-12 w-12 mb-2 opacity-20" />
-                                <p>Drag and drop form elements here</p>
-                            </div>
-                            )}
-                        </div>
-                        </div>
-                    </div>
-                </DndContext>    
+      <div className="flex-1 p-4 bg-background">
+        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className="p-4 bg-background">
+            <div className="flex justify-between items-center mb-6 bg-card p-4 rounded-lg shadow-sm">
+              <div className="flex items-center gap-4 w-1/2">
+                <Label htmlFor="form-name" className="whitespace-nowrap font-medium">
+                  Form Name:
+                </Label>
+                <Input
+                  id="form-name"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="flex-grow"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="default"
+                  onClick={saveFormToDatabase}
+                  disabled={isSaving}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {isSaving ? "Saving..." : formId ? "Update Form" : "Save to Database"}
+                </Button>
+                <Button variant="outline" onClick={exportJSON} className="flex items-center gap-2">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 15 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      d="M7.50005 1.04999C7.74858 1.04999 7.95005 1.25146 7.95005 1.49999V8.41359L10.1819 6.18179C10.3576 6.00605 10.6425 6.00605 10.8182 6.18179C10.994 6.35753 10.994 6.64245 10.8182 6.81819L7.81825 9.81819C7.64251 9.99392 7.35759 9.99392 7.18185 9.81819L4.18185 6.81819C4.00611 6.64245 4.00611 6.35753 4.18185 6.18179C4.35759 6.00605 4.64251 6.00605 4.81825 6.18179L7.05005 8.41359V1.49999C7.05005 1.25146 7.25152 1.04999 7.50005 1.04999ZM2.5 10C2.77614 10 3 10.2239 3 10.5V12C3 12.5539 3.44565 13 3.99635 13H11.0012C11.5529 13 12 12.5539 12 12V10.5C12 10.2239 12.2239 10 12.5 10C12.7761 10 13 10.2239 13 10.5V12C13 13.1046 12.1049 14 11.0012 14H3.99635C2.89178 14 2 12.1046 2 12V10.5C2 10.2239 2.22386 10 2.5 10Z"
+                      fill="currentColor"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                    ></path>
+                  </svg>
+                  Export JSON
+                </Button>
+              </div>
             </div>
-        </div>
 
+            <div className="flex gap-6">
+              <Card className="w-1/4 p-4 h-fit sticky top-4">
+                <h2 className="text-lg font-semibold mb-4">Form Elements</h2>
+                <p className="text-sm text-muted-foreground mb-4">Drag and drop elements onto the form builder</p>
+                <div className="space-y-1">
+                  {formElements.map((item) => (
+                    <DraggableField key={item.id} {...item} />
+                  ))}
+                </div>
+              </Card>
 
-    )
+              <div
+                ref={setNodeRef}
+                className={`w-3/4 min-h-[600px] border-2 border-dashed rounded-lg p-6 transition-colors ${
+                  isOver ? "bg-muted/70" : "bg-background"
+                }`}
+              >
+                <h2 className="text-lg font-semibold mb-4">Form Builder</h2>
+                <SortableContext items={elements.map((ele) => ele.id)} strategy={rectSortingStrategy}>
+                  {elements.map((item) => (
+                    <SortableItem
+                      key={item.id}
+                      item={item}
+                      updateElement={updateElement}
+                      removeElement={removeElement}
+                    />
+                  ))}
+                </SortableContext>
+                {elements.length === 0 && (
+                  <div className="text-center text-muted-foreground py-12 flex flex-col items-center justify-center">
+                    <Plus className="h-12 w-12 mb-2 opacity-20" />
+                    <p>Drag and drop form elements here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DndContext>
+      </div>
+    </div>
+  )
 }
 
 export default ProposalFormBuilder
