@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface Proposal {
@@ -15,6 +15,9 @@ interface Proposal {
   amount: number
   formId: string
   isPublic: boolean
+  email?: string
+  title?: string
+  description?: string
 }
 
 function ProposalsPage() {
@@ -89,13 +92,27 @@ function ProposalsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {proposals.map((proposal) => (
             <div key={proposal._id} onClick={() => handleCardClick(proposal._id, proposal.formId)}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{proposal.domain}</CardTitle>
-                  <CardDescription>{proposal.type}</CardDescription>
+              <Card className="h-full">
+                <CardHeader className="">
+                  <CardTitle className="text-lg truncate" title={proposal.title || "No title"}>
+                    {proposal.title || "No title"}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2 max-h-10" title={proposal.description || "No description"}>
+                    {proposal.description || "No description"}
+                  </CardDescription>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <Badge variant="outline">{proposal.domain}</Badge>
+                    <Badge variant="outline">{proposal.type}</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
+                    {proposal.email && (
+                      <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground truncate">
+                        <Mail className="h-4 w-4" />
+                        <span className="truncate" title={proposal.email}>{proposal.email}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Amount:</span>
                       <span className="font-semibold">${proposal.amount.toLocaleString()}</span>

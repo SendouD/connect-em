@@ -16,6 +16,8 @@ interface Pitch {
   formId: string
   createdAt: string
   investors: [string]
+  title: string        
+  description: string
 }
 
 function PitchesPage() {
@@ -104,13 +106,15 @@ function PitchesPage() {
               onClick={() => handleCardClick(pitch._id)}
               className="cursor-pointer transition-all hover:shadow-md"
             >
-              <Card>
+              <Card className="h-48 overflow-hidden">
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
-                    <span>{pitch.domain}</span>
-                    
+                    <span className="truncate max-w-[200px]">{pitch.title || pitch.domain}</span>
+                    <Badge>{pitch.type}</Badge>
                   </CardTitle>
-                  <CardDescription>{pitch.type}</CardDescription>
+                  <CardDescription className="mt-2 line-clamp-2 text-sm">
+                    {pitch.description || `A startup in the ${pitch.domain} domain`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -121,11 +125,6 @@ function PitchesPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Submitted on:</span>
                       <span>{formatDate(pitch.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center justify-end mt-4">
-                      <span className="text-sm text-blue-600 hover:underline">
-                        View details →
-                      </span>
                     </div>
                   </div>
                 </CardContent>

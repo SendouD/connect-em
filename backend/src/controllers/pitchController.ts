@@ -18,7 +18,7 @@ export const copyTemplate = async (req: Request, res: Response): Promise<void> =
 
 export const createPitch = async (req: CustomRequest, res: Response): Promise<void> => {
     const email = req.email;
-    const { domain, type, formId, submittedData } = req.body
+    const { domain, type, formId, submittedData, title, description } = req.body
 
     try {
         const newPitch = new Pitch({
@@ -26,6 +26,8 @@ export const createPitch = async (req: CustomRequest, res: Response): Promise<vo
             type,
             formId,
             email,
+            title,
+            description,
             submittedData,
         });
 

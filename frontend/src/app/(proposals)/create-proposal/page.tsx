@@ -53,6 +53,8 @@ function ProposalPage() {
   }, [isAuthenticated, router])
   
   const [proposalData, setProposalData] = useState({
+    title: "",
+    description: "",
     investments: [
       { domain: "", type: "", amount: "" }
     ],
@@ -133,6 +135,20 @@ function ProposalPage() {
     });
   };
 
+  const handleTitleChange = (e) => {
+    setProposalData({
+      ...proposalData,
+      title: e.target.value
+    });
+  };
+
+  const handleDescriptionChange = (e) => {
+    setProposalData({
+      ...proposalData,
+      description: e.target.value
+    });
+  };
+
   const nextStep = () => {
     setCurrentStep(2);
   };
@@ -180,6 +196,8 @@ function ProposalPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            title: proposalData.title,
+            description: proposalData.description,
             investments: proposalData.investments,
             formId: formId,
             isPublic: proposalData.isPublic
@@ -192,6 +210,8 @@ function ProposalPage() {
           alert("Proposal submitted successfully!");
 
           setProposalData({
+            title: "",
+            description: "",
             investments: [{ domain: "", type: "", amount: "" }],
             selectedForm: "new",
             formId: "",
@@ -228,6 +248,8 @@ function ProposalPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            title: proposalData.title,
+            description: proposalData.description,
             investments: proposalData.investments,
             formId: proposalForm._id,
             isPublic: proposalData.isPublic
@@ -240,6 +262,8 @@ function ProposalPage() {
           alert("Proposal submitted successfully!");
 
           setProposalData({
+            title: "",
+            description: "",
             investments: [{ domain: "", type: "", amount: "" }],
             selectedForm: "new",
             formId: "",
@@ -258,8 +282,12 @@ function ProposalPage() {
   };
 
   const isStep1Valid = () => {
-    return proposalData.investments.every(inv => 
-      inv.domain && inv.type && inv.amount && !isNaN(inv.amount)
+    return (
+      proposalData.title.trim() !== "" && 
+      proposalData.description.trim() !== "" && 
+      proposalData.investments.every(inv => 
+        inv.domain && inv.type && inv.amount && !isNaN(inv.amount)
+      )
     );
   };
   
@@ -282,7 +310,7 @@ function ProposalPage() {
           <div className="mb-6">
             <div className="flex justify-between mb-2">
               <div className={`flex-1 text-center p-2 rounded-l-md ${currentStep === 1 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                Step 1: Investment Details
+                Step 1: Proposal Details
               </div>
               <div className={`flex-1 text-center p-2 rounded-r-md ${currentStep === 2 ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                 Step 2: Form Selection
@@ -291,10 +319,37 @@ function ProposalPage() {
           </div>
           
           {currentStep === 1 && (
-            <InvestmentForm 
-              proposalData={proposalData}
-              setProposalData={setProposalData}
-            />
+            <>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <Label htmlFor="proposal-title">Proposal Title</Label>
+                  <Input 
+                    id="proposal-title" 
+                    placeholder="Enter a title for your proposal"
+                    value={proposalData.title}
+                    onChange={handleTitleChange}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="proposal-description">Proposal Description</Label>
+                  <Textarea 
+                    id="proposal-description" 
+                    placeholder="Provide a brief description of your investment proposal"
+                    value={proposalData.description}
+                    onChange={handleDescriptionChange}
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <InvestmentForm 
+                proposalData={proposalData}
+                setProposalData={setProposalData}
+              />
+            </>
           )}
           
           {currentStep === 2 && (
