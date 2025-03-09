@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPitch = exports.getAllPitches = exports.createPitch = exports.copyTemplate = void 0;
+exports.investorInterest = exports.getPitch = exports.getAllPitches = exports.createPitch = exports.copyTemplate = void 0;
 const pitchModel_1 = __importDefault(require("../models/pitchModel"));
 const formModel_1 = require("../models/formModel");
 const copyTemplate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -66,3 +66,25 @@ const getPitch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getPitch = getPitch;
+const investorInterest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const email = req.email;
+        const { id } = req.params;
+        const pitch = yield pitchModel_1.default.findById(id);
+        if (!pitch) {
+            res.status(404).json({ message: "Pitch not found" });
+            return;
+        }
+        if (pitch.investors.includes(email)) {
+            res.status(400).json({ message: "You have already invested in this pitch" });
+            return;
+        }
+        pitch.investors.push(email);
+        yield pitch.save();
+        res.status(200).json(pitch);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error fetching pitch", error });
+    }
+});
+exports.investorInterest = investorInterest;
