@@ -229,7 +229,7 @@ const ApplicationsGraph: React.FC<ApplicationsGraphProps> = ({ applications }) =
       </div>
       
       {/* Totals summary */}
-      <div className="grid grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-4 gap-4 mt-4">
        
         
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -244,6 +244,10 @@ const ApplicationsGraph: React.FC<ApplicationsGraphProps> = ({ applications }) =
         <div className="bg-red-50 p-4 rounded-lg border border-red-200">
           <div className="text-sm text-gray-600">Total Rejected</div>
           <div className="text-2xl font-bold text-red-600">{totals.totalRejected}</div>
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <div className="text-sm text-gray-600">Total Pending</div>
+          <div className="text-2xl font-bold text-yellow-600">{totals.totalApplications-totals.totalApproved-totals.totalRejected}</div>
         </div>
       </div>
     </div>
