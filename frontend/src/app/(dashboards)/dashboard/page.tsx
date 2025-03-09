@@ -8,7 +8,8 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
-    CardFooter
+    CardFooter,
+    CardDescription
 } from '@/components/ui/card'
 import {
     Table,
@@ -21,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image as ImageIcon, ExternalLink } from 'lucide-react'
+import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image as ImageIcon, ExternalLink, Mail } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/providers/AuthProvider'
 import ApplicationsGraph from '@/components/Line'
@@ -520,28 +521,42 @@ export default function InvestorDashboard() {
                     ) : (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {proposals.map((proposal) => (
-                                <Card key={proposal._id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader>
-                                        <CardTitle>{proposal.domain}</CardTitle>
-                                        <p className="text-muted-foreground">${proposal.amount.toLocaleString()}</p>
+                                <Card className="h-full">
+                                    <CardHeader className="">
+                                    <CardTitle className="text-lg truncate" title={proposal.title || "No title"}>
+                                        {proposal.title || "No title"}
+                                    </CardTitle>
+                                    <CardDescription className="line-clamp-2 max-h-10" title={proposal.description || "No description"}>
+                                        {proposal.description || "No description"}
+                                    </CardDescription>
+                                    <div className="flex gap-2 mt-2 flex-wrap">
+                                        <Badge variant="outline">{proposal.domain}</Badge>
+                                        <Badge variant="outline">{proposal.type}</Badge>
+                                    </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between">
-                                                <span className="text-sm text-gray-500">Type:</span>
-                                                <span>{proposal.type}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-sm text-gray-500">Status:</span>
-                                                <Badge variant={proposal.isPublic ? "success" : "secondary"}>
-                                                    {proposal.isPublic ? "Public" : "Private"}
-                                                </Badge>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-sm text-gray-500">Created:</span>
-                                                <span>{new Date(proposal.createdAt).toLocaleDateString()}</span>
-                                            </div>
+                                    <div className="space-y-2">
+                                        {proposal.email && (
+                                        <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground truncate">
+                                            <Mail className="h-4 w-4" />
+                                            <span className="truncate" title={proposal.email}>{proposal.email} (You)</span>
                                         </div>
+                                        )}
+                                        <div className="flex justify-between items-center">
+                                        <span className="text-sm text-muted-foreground">Amount:</span>
+                                        <span className="font-semibold">${proposal.amount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                        <span className="text-sm text-muted-foreground">Form:</span>
+                                        <span>{"Yes"}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                        <span className="text-sm text-muted-foreground">Visibility:</span>
+                                        <Badge variant={proposal.isPublic ? "default" : "secondary"}>
+                                            {proposal.isPublic ? "Public" : "Private"}
+                                        </Badge>
+                                        </div>
+                                    </div>
                                     </CardContent>
                                     <CardFooter>
                                         <Button

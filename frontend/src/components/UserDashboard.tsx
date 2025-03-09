@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2 } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
 import { format } from "date-fns"
 
 // Define TypeScript interface based on your Proposal schema
@@ -55,7 +55,6 @@ function Page() {
 
       const data = await response.json()
       
-      // Filter out any null or undefined proposals
       const validProposals = Array.isArray(data.proposals) 
         ? data.proposals.filter((proposal: Proposal | null) => proposal !== null && proposal !== undefined)
         : []
@@ -91,37 +90,46 @@ function Page() {
   }
 
   const renderProposalCard = (proposal: Proposal) => {
-    // Skip rendering if proposal is null or undefined
     if (!proposal || !proposal._id) {
       return null;
     }
     
     return (
-      <Card key={proposal._id} className="overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl">{proposal.domain || 'Unknown Domain'}</CardTitle>
-          <CardDescription>Type: {proposal.type || 'Unknown'}</CardDescription>
+      <Card className="h-full">
+        <CardHeader className="">
+          <CardTitle className="text-lg truncate" title={proposal.title || "No title"}>
+            {proposal.title || "No title"}
+          </CardTitle>
+          <CardDescription className="line-clamp-2 max-h-10" title={proposal.description || "No description"}>
+            {proposal.description || "No description"}
+          </CardDescription>
+          <div className="flex gap-2 mt-2 flex-wrap">
+            <Badge variant="outline">{proposal.domain}</Badge>
+            <Badge variant="outline">{proposal.type}</Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
+            {proposal.email && (
+              <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground truncate">
+                <Mail className="h-4 w-4" />
+                <span className="truncate" title={proposal.email}>{proposal.email}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Amount:</span>
-              <span className="font-semibold">
-                {typeof proposal.amount === 'number' ? formatCurrency(proposal.amount) : 'N/A'}
-              </span>
+              <span className="text-sm text-muted-foreground">Amount:</span>
+              <span className="font-semibold">${proposal.amount.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Visibility:</span>
-              <Badge variant={proposal.isPublic ? "success" : "secondary"}>
+              <span className="text-sm text-muted-foreground">Form:</span>
+              <span>{"Yes"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Visibility:</span>
+              <Badge variant={proposal.isPublic ? "default" : "secondary"}>
                 {proposal.isPublic ? "Public" : "Private"}
               </Badge>
             </div>
-            
-            {proposal.createdAt && (
-              <p className="text-sm text-gray-500 pt-2">
-                Submitted: {format(new Date(proposal.createdAt), 'PPP')}
-              </p>
-            )}
           </div>
         </CardContent>
         <CardFooter className="bg-gray-50 pt-2">
