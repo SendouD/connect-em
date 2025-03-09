@@ -57,6 +57,18 @@ export const getPitch = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ message: "Error fetching pitch", error });
     }
 };
+export const fetchPitches = async (req: CustomRequest, res: Response): Promise<void> => {
+    console.log('hitt')
+    try {
+        const email = req.email;
+        console.log(email)
+        const pitches = await Pitch.find({ email });
+        res.status(200).json(pitches);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Error petch pitches", error });
+    }
+}
 
 export const investorInterest = async (req: CustomRequest, res: Response): Promise<void> => {
     try {
