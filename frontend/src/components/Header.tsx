@@ -115,13 +115,8 @@ const Header = () => {
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/investor-dashboard" className="block px-4 py-2 hover:bg-gray-100">
-                                Investor dashboard
-                            </Link>
-                        </li>
-                        <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/user-dashboard" className="block px-4 py-2 hover:bg-gray-100">
-                                User dashboard
+                            <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">
+                             dashboard
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>

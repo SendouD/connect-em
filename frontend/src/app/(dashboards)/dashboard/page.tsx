@@ -25,7 +25,8 @@ import { Loader2, ChevronLeft, CheckCircle, XCircle, Download, FileText, Image a
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/providers/AuthProvider'
 import ApplicationsGraph from '@/components/Line'
-
+import UserDashboard from '@/components/UserDashboard'
+import UserPitch from '@/components/User-pitches'
 export default function InvestorDashboard() {
     const [proposals, setProposals] = useState([])
     const [applications, setApplications] = useState([])
@@ -490,16 +491,22 @@ export default function InvestorDashboard() {
 
     return (
         <div className="container mx-auto py-6">
-            <Tabs defaultValue="active">
+            <Tabs defaultValue="grants">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">My Investments</h1>
+                    <h1 className="text-2xl font-bold">Dashboard</h1>
                     <TabsList>
-                        <TabsTrigger value="active">Active</TabsTrigger>
-                        <TabsTrigger value="archived">Archived</TabsTrigger>
+                        <TabsTrigger value="grants">Grants</TabsTrigger>
+                        <TabsTrigger value="applied-grants">Applied Grants</TabsTrigger>
+                        <TabsTrigger value="pitches">Pitches</TabsTrigger>
+
                     </TabsList>
                 </div>
 
-                <TabsContent value="active">
+                <TabsContent value="grants">
+                <div className="container mx-auto py-8 px-4">
+
+                <h1 className="text-3xl font-bold mb-6">Your Grant Programms</h1>
+
                     {proposals.length === 0 ? (
                         <Card>
                             <CardContent className="text-center py-12">
@@ -550,16 +557,14 @@ export default function InvestorDashboard() {
                             ))}
                         </div>
                     )}
+                </div>
                 </TabsContent>
 
-                <TabsContent value="archived">
-                    <Card>
-                        <CardContent className="text-center py-12">
-                            <p className="text-muted-foreground">
-                                No archived investments found.
-                            </p>
-                        </CardContent>
-                    </Card>
+                <TabsContent value="applied-grants">
+                  <UserDashboard/>
+                </TabsContent>
+                <TabsContent value="pitches">
+                    <UserPitch/>
                 </TabsContent>
             </Tabs>
         </div>
