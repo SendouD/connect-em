@@ -160,6 +160,8 @@ export default function DynamicForm() {
         }
 
         const data: FormData = await response.json();
+
+        console.log(data);
         setForm(data);
       } catch (error) {
         console.error("Error fetching form structure:", error);
@@ -419,7 +421,7 @@ export default function DynamicForm() {
                     {field.validate?.required && <span className="text-destructive ml-1">*</span>}
                   </Label>
 
-                  {field.key === "textfield" && (
+                  {field.type === "textfield" && field.inputType !== "date" && (
                     <Input
                       id={field.label}
                       type="text"
@@ -432,7 +434,7 @@ export default function DynamicForm() {
                     />
                   )}
 
-                  {field.key === "textarea" && (
+                  {field.type === "textarea" && (
                     <Textarea
                       id={field.label}
                       placeholder={field.placeholder || ""}
@@ -456,7 +458,7 @@ export default function DynamicForm() {
                     />
                   )}
 
-                  {field.key === "number" && (
+                  {field.type === "number" && (
                     <Input
                       id={field.label}
                       type="number"
@@ -469,7 +471,7 @@ export default function DynamicForm() {
                     />
                   )}
 
-                  {field.key === "password" && (
+                  {field.type === "password" && (
                     <Input
                       id={field.label}
                       type="password"

@@ -253,6 +253,27 @@ function CreatePitchPage() {
   };
 
   const renderFormElement = (element: FormElement, index: number) => {
+    if(element.inputType === "date") {
+      return (
+        <div className="mb-4">
+          <Label htmlFor={element.label} className="block mb-2">
+            {element.label} {element.validate?.required && <span className="text-red-500">*</span>}
+          </Label>
+          <div className="relative">
+            <Input
+              id={element.label}
+              type="date"
+              value={formData[element.label] || ""}
+              onChange={(e) => handleInputChange(element.label, e.target.value)}
+              required={element.validate?.required}
+            />
+            <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+          </div>
+          {element.placeholder && <p className="text-xs text-muted-foreground mt-1">{element.placeholder}</p>}
+        </div>
+      );
+    }
+
     switch (element.type) {
       case "text":
         return (
@@ -288,26 +309,6 @@ function CreatePitchPage() {
               required={element.validate?.required}
               className="min-h-[120px]"
             />
-            {element.placeholder && <p className="text-xs text-muted-foreground mt-1">{element.placeholder}</p>}
-          </div>
-        );
-      
-      case "date":
-        return (
-          <div className="mb-4">
-            <Label htmlFor={element.label} className="block mb-2">
-              {element.label} {element.validate?.required && <span className="text-red-500">*</span>}
-            </Label>
-            <div className="relative">
-              <Input
-                id={element.label}
-                type="date"
-                value={formData[element.label] || ""}
-                onChange={(e) => handleInputChange(element.label, e.target.value)}
-                required={element.validate?.required}
-              />
-              <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-            </div>
             {element.placeholder && <p className="text-xs text-muted-foreground mt-1">{element.placeholder}</p>}
           </div>
         );
@@ -514,13 +515,11 @@ function CreatePitchPage() {
 
   const isFormValid = () => {
     if (!selectedForm) return false;
-    
-    // Check if domain and type are selected
+
     if (!pitchData.domain || !pitchData.type) {
       return false;
     }
-    
-    // Check if title and description are provided
+
     if (!pitchData.title || !pitchData.description) {
       return false;
     }
