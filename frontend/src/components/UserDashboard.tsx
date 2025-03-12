@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Mail } from "lucide-react"
 import { format } from "date-fns"
+import { useTheme } from "next-themes"
 
 interface Proposal {
   _id: string;
@@ -28,6 +29,7 @@ function Page() {
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { theme } = useTheme()
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -131,7 +133,7 @@ function Page() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="bg-gray-50 pt-2">
+        <CardFooter className={`${(theme === "light") ? "bg-gray-50" : "bg-gray-800"} pt-2`}>
           <Button 
             variant="outline" 
             onClick={() => handleViewDetails(proposal._id, proposal.formId)}

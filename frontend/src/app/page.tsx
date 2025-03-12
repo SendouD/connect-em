@@ -5,9 +5,11 @@ import { ArrowRight, TrendingUp, FileText, CheckCircle, Users } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 export default function Home() {
   const router = useRouter()
+  const { theme } = useTheme()
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -74,7 +76,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full bg-gray-50 py-12 px-4 rounded-lg max-w-6xl">
+      <section className={`w-full bg-gray-50 dark:bg-gray-900 py-12 px-4 rounded-lg max-w-6xl`}>
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2">Trusted by investors and founders</h2>
           <p className="text-gray-600">Join our growing community of investors and founders</p>

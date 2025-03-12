@@ -14,6 +14,7 @@ import ApplicationsGraph from '@/components/Line'
 import UserDashboard from '@/components/UserDashboard'
 import UserPitch from '@/components/User-pitches'
 import ProtectedRoute from '@/components/routes/ProtectedRoute'
+import { useTheme } from 'next-themes'
 
 export default function InvestorDashboard() {
     const [proposals, setProposals] = useState([])
@@ -22,6 +23,7 @@ export default function InvestorDashboard() {
     const [selectedApplication, setSelectedApplication] = useState(null)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
+    const { theme } = useTheme();
 
     useEffect(() => {
         async function fetchProposals() {
@@ -359,7 +361,7 @@ export default function InvestorDashboard() {
 
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 mb-2">Application Submissions</h3>
-                                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                                <div className={`${(theme === "light") ? "bg-gray-50" : "bg-gray-800"} rounded-lg p-4 space-y-3`}>
                                     {selectedApplication.submittedData && Object.entries(selectedApplication.submittedData).map(([key, value]) => (
                                         <div key={key} className="space-y-2">
                                             {renderFormField(key, value)}

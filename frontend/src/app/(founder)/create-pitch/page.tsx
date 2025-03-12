@@ -13,6 +13,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import axios from 'axios';
 import Image from 'next/image';
 import ProtectedRoute from '@/components/routes/ProtectedRoute';
+import { useTheme } from 'next-themes';
 
 const domainOptions = ["Software Development", "Hardware", "IT Infrastructure", "Research & Development"];
 const typeOptions = {
@@ -59,6 +60,7 @@ function CreatePitchPage() {
   const fileInputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const { themes } = useTheme();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user?.email) {
@@ -423,7 +425,7 @@ function CreatePitchPage() {
             />
 
             <div 
-              className="border-2 border-dashed rounded-md p-4 text-center hover:bg-gray-50 cursor-pointer"
+              className={`border-2 border-dashed rounded-md p-4 text-center ${(theme === "light") ? "hover:bg-gray-50" : "hover:bg-gray-800"} cursor-pointer`}
               onClick={() => triggerFileInput(element.label)}
             >
               {isImage ? (
@@ -456,7 +458,7 @@ function CreatePitchPage() {
             {fileUrls[element.label] && fileUrls[element.label].length > 0 && (
               <div className="mt-3 space-y-2">
                 {fileUrls[element.label].map((url, fileIndex) => (
-                  <div key={fileIndex} className="flex items-center gap-2 bg-gray-50 p-2 rounded">
+                  <div key={fileIndex} className={`flex items-center gap-2 ${(theme === "light") ? "bg-gray-50" : "bg-gray-800" } p-2 rounded`}>
                     {isImage ? (
                       <div className="w-10 h-10 relative">
                         <Image

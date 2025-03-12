@@ -4,6 +4,8 @@ import "./globals.css";
 import "./toast-styles.css"
 import Header from "@/components/Header";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +33,20 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Header />
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <Header />
+            {children}
+            <Toaster
+              position="bottom-center"
+              toastOptions={{
+                duration: 3000,
+                className: "rounded-md shadow-lg border border-border",
+                style: {
+                  padding: '16px',
+                }
+              }}
+            />
+          </ThemeProvider>
         </body>
       </AuthProvider>
     </html>

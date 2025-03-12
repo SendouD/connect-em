@@ -14,6 +14,7 @@ import { Loader2, Upload, X, FileIcon, ImageIcon, DollarSign } from 'lucide-reac
 import axios from "axios"
 import Image from "next/image"
 import ProtectedRoute from "@/components/routes/ProtectedRoute"
+import { useTheme } from "next-themes"
 
 interface FormElement {
   type: string
@@ -60,6 +61,7 @@ export default function DynamicForm() {
   const [fileUploadStatus, setFileUploadStatus] = useState<Record<string, string>>({})
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [proposal, setProposal] = useState<Proposal | null>(null)
+  const { theme } = useTheme();
 
 
   useEffect(() => {
@@ -558,8 +560,8 @@ export default function DynamicForm() {
                       />
                       
                       <div 
-                        className={`border-2 border-dashed rounded-md p-4 text-center ${
-                          filledData && filledData.isSubmitted ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+                        className={`border-2 border-dashed rounded-md p-4 text-center ${ (theme === "light") ?
+                          (filledData && filledData.isSubmitted) ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer' : (filledData && filledData.isSubmitted) ? 'bg-gray-800 cursor-not-allowed' : 'hover:bg-gray-800 cursor-pointer'
                         }`}
                         onClick={() => !(filledData && filledData.isSubmitted) && triggerFileInput(field.label)}
                       >
@@ -593,7 +595,7 @@ export default function DynamicForm() {
                       {fileUrls[field.label] && fileUrls[field.label].length > 0 && (
                         <div className="mt-3 space-y-2">
                           {fileUrls[field.label].map((url, index) => (
-                            <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded">
+                            <div key={index} className={`flex items-center gap-2 ${(theme === "light") ? "bg-gray-50" : "bg-gray-800"} p-2 rounded`}>
                               {isImageField(field) && url.startsWith('blob:') ? (
                                 <div className="w-10 h-10 relative">
                                   <Image

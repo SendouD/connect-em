@@ -5,8 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, X, User, LogIn } from "lucide-react"
+import { Menu, X, User, LogIn, Sun, Moon } from "lucide-react"
 import { useAuth } from "@/providers/AuthProvider"
+import { useTheme } from "next-themes"
+import { Switch } from "@/components/ui/switch"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -14,6 +16,12 @@ const Header = () => {
   const { user, isAuthenticated } = useAuth()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
@@ -53,9 +61,13 @@ const Header = () => {
       console.error("Error logging out:", error);
     }
   };
+
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
   
   return (
-    <header className="sticky top-0 z-50 w-[97%] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mx-10">
+    <header className="sticky top-0 z-50 w-[100vw] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-[2vw]">
       <div className="flex h-16 items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
@@ -92,6 +104,18 @@ const Header = () => {
         </nav>
 
         <div className="hidden md:flex md:items-center md:gap-x-4">
+            {mounted && (
+              <div className="flex items-center space-x-2 mr-2">
+                <Sun className="h-4 w-4 text-muted-foreground" />
+                <Switch
+                  checked={theme === "dark"}
+                  onCheckedChange={toggleTheme}
+                  aria-label="Toggle theme"
+                />
+                <Moon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            
             {isAuthenticated ? (
                 <div className="relative" ref={dropdownRef}>
                 <div
@@ -109,32 +133,32 @@ const Header = () => {
                 </div>
 
                 {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className={`absolute right-0 mt-2 w-48 ${(theme === "light") ? "bg-white" : "bg-gray-950"} border ${(theme === "light") ? "border-gray-200" : "border-gray-800" } rounded-md shadow-lg z-50`}>
                     <ul className="py-1">
                         <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/create-form" className="block px-4 py-2 hover:bg-gray-100">
+                            <Link href="/create-form" className={`block rounded px-4 py-2 ${(theme === "light") ? "hover:bg-gray-100" : "hover:bg-gray-500"}`}>
                                 Grant/EIR templates
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/create-proposal" className="block px-4 py-2 hover:bg-gray-100">
+                            <Link href="/create-proposal" className={`block rounded px-4 py-2 ${(theme === "light") ? "hover:bg-gray-100" : "hover:bg-gray-500"}`}>
                                 Create a Grant
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/create-pitch" className="block px-4 py-2 hover:bg-gray-100">
+                            <Link href="/create-pitch" className={`block rounded px-4 py-2 ${(theme === "light") ? "hover:bg-gray-100" : "hover:bg-gray-500"}`}>
                                 Create a Pitch
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
-                            <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">
+                            <Link href="/dashboard" className={`block rounded px-4 py-2 ${(theme === "light") ? "hover:bg-gray-100" : "hover:bg-gray-500"}`}>
                               Dashboard
                             </Link>
                         </li>
                         <li onClick={() => setIsDropdownOpen(false)}>
                           <button
                               onClick={logout}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                              className={`w-full rounded text-left px-4 py-2 ${(theme === "light") ? "hover:bg-gray-100" : "hover:bg-gray-500"}`}
                           >
                               Log Out
                           </button>
