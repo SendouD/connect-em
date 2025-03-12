@@ -108,7 +108,7 @@ function ProposalPage() {
     }
   };
 
-  const handleFormSelection = (value) => {
+  const handleFormSelection = (value: any) => {
     setProposalData({
       ...proposalData,
       selectedForm: value,
@@ -122,28 +122,28 @@ function ProposalPage() {
     }
   };
 
-  const handleFormNameChange = (e) => {
+  const handleFormNameChange = (e: any) => {
     setProposalData({
       ...proposalData,
       formName: e.target.value
     });
   };
 
-  const handlePublicToggle = (value) => {
+  const handlePublicToggle = (value: any) => {
     setProposalData({
       ...proposalData,
       isPublic: value === "public"
     });
   };
 
-  const handleTitleChange = (e) => {
+  const handleTitleChange = (e: any) => {
     setProposalData({
       ...proposalData,
       title: e.target.value
     });
   };
 
-  const handleDescriptionChange = (e) => {
+  const handleDescriptionChange = (e: any) => {
     setProposalData({
       ...proposalData,
       description: e.target.value
@@ -164,69 +164,17 @@ function ProposalPage() {
   
   const submitProposal = async () => {
     console.log("Submitting Grant:", proposalData);
-
-    let formId;
     
     if (proposalData.selectedForm === "new") {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({name: "New Form", components: []}),
-            credentials: 'include',
-        })
-  
-        if (!response.ok) {
-            throw new Error('Failed to save form')
-        }
-  
-        const savedForm = await response.json()
-        formId = savedForm._id
-  
-      } catch (error) {
-        console.error('Error saving form:', error)
-      }
-
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/proposal/create`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: proposalData.title,
-            description: proposalData.description,
-            investments: proposalData.investments,
-            formId: formId,
-            isPublic: proposalData.isPublic
-          }),
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-
-          setProposalData({
-            title: "",
-            description: "",
-            investments: [{ domain: "", type: "", amount: "" }],
-            selectedForm: "new",
-            formId: "",
-            formName: "",
-            isPublic: true
-          });
-          setCurrentStep(1);
-        } else {
-          console.log("Failed to submit Grant");
-        }
-      } catch (error) {
-        console.error("Error submitting grant:", error);
-      }
-
-      router.push(`/proposal-form/${formId}`);
+      const queryParams = new URLSearchParams({
+        title: proposalData.title,
+        description: proposalData.description,
+        investments: JSON.stringify(proposalData.investments),
+        isPublic: proposalData.isPublic.toString(),
+        formName: proposalData.formName
+      }).toString();
+      
+      router.push(`/proposal-form/new?${queryParams}`);
     } else {
       try {
         const response1 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/copy-template/${proposalData.formId}`, {
@@ -283,7 +231,7 @@ function ProposalPage() {
       proposalData.title.trim() !== "" && 
       proposalData.description.trim() !== "" && 
       proposalData.investments.every(inv => 
-        inv.domain && inv.type && inv.amount && !isNaN(inv.amount)
+        inv.domain && inv.type && inv.amount && !isNaN(Number(inv.amount))
       )
     );
   };

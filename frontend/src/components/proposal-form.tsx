@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { DndContext, useDroppable, type DragEndEvent, closestCenter } from "@dnd-kit/core"
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast, Toaster } from "sonner"
 import FormSidebar from "./form-sidebar"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface FormElementValidation {
   required: boolean
@@ -508,72 +508,88 @@ const SortableItem: React.FC<{
 }
 
 const ProposalFormBuilder = (props) => {
-  const { isOver, setNodeRef } = useDroppable({ id: "form-canvas" })
-  const [elements, setElements] = useState<FormElement[]>([])
-  const [formName, setFormName] = useState("New Form")
-  const [isSaving, setIsSaving] = useState(false)
+  const { isOver, setNodeRef } = useDroppable({ id: "form-canvas" });
+  const [elements, setElements] = useState<FormElement[]>([]);
+  const [formName, setFormName] = useState("New Form");
+  const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
-  let formId = props.formId
-
-
-    const transformFormElements = (components: any[]): FormElement[] => {
-      return components.map((component, index) => ({
-        id: `${component.label}-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
-        label: component.label || "",
-        type: component.type || "textfield",
-        key: component.key,
-        placeholder: component.placeholder || "",
-        defaultValue: component.defaultValue || "",
-        options: component.options ? [...component.options] : [],
-        tableView: component.tableView !== false,
-        inputType: component.inputType || "text",
-        validate: component.validate ? { ...component.validate } : {
-          required: false,
-          minLength: "",
-          maxLength: "",
-          pattern: "",
-          custom: "",
-          customPrivate: false,
-        },
-        imageSize: component.fileMaxSize || "",
-        fileTypes: component.fileTypes ? [...component.fileTypes] : [],
-        multiple: component.multiple || false,
-      }))
-    };
-
-    useEffect(() => {
-      async function fetchForms() {
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form/${formId}`, {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          const data = await response.json();
-          console.log(data);
-
-
-          const transformedElements = transformFormElements(data.components);
-          setElements([]);
-
-          setTimeout(() => {
-              setElements(transformedElements);
-              setFormName(data.name);
-          }, 50);
-          
-        } catch (error) {
-          console.error("Error fetching forms:", error);
-        }
-      }
+  const searchParams = useSearchParams();
+  let formId = props.formId;
   
-      fetchForms();
-    }, []);  
+  const proposalData = useMemo(() => {
+    if (formId === "new") {
+      setFormName(searchParams.get("formName") || "");
 
-    useEffect(() => {
-        console.log("Form elements:", elements);
-    },[elements])
+      return {
+        title: searchParams.get("title") || "",
+        description: searchParams.get("description") || "",
+        investments: searchParams.get("investments") ? JSON.parse(searchParams.get("investments")) : [],
+        isPublic: searchParams.get("isPublic") === "true",
+        formName: searchParams.get("formName") || ""
+      };
+    }
+    return null;
+  }, [formId, searchParams]);
+
+
+  const transformFormElements = (components: any[]): FormElement[] => {
+    return components.map((component, index) => ({
+      id: `${component.label}-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+      label: component.label || "",
+      type: component.type || "textfield",
+      key: component.key,
+      placeholder: component.placeholder || "",
+      defaultValue: component.defaultValue || "",
+      options: component.options ? [...component.options] : [],
+      tableView: component.tableView !== false,
+      inputType: component.inputType || "text",
+      validate: component.validate ? { ...component.validate } : {
+        required: false,
+        minLength: "",
+        maxLength: "",
+        pattern: "",
+        custom: "",
+        customPrivate: false,
+      },
+      imageSize: component.fileMaxSize || "",
+      fileTypes: component.fileTypes ? [...component.fileTypes] : [],
+      multiple: component.multiple || false,
+    }))
+  };
+
+  useEffect(() => {
+    async function fetchForms() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form/${formId}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        console.log(data);
+
+
+        const transformedElements = transformFormElements(data.components);
+        setElements([]);
+
+        setTimeout(() => {
+            setElements(transformedElements);
+            setFormName(data.name);
+        }, 50);
+        
+      } catch (error) {
+        console.error("Error fetching forms:", error);
+      }
+    }
+
+    fetchForms();
+  }, []);  
+
+  useEffect(() => {
+      console.log("Form elements:", elements);
+  },[elements])
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -660,35 +676,64 @@ const ProposalFormBuilder = (props) => {
     }
 
     const saveFormToDatabase = async () => {
-        try {
-            setIsSaving(true)
-            const formData = prepareFormData()
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form`, {
-                method: formId ? 'PUT' : 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-                credentials: 'include',
-            })
-
-            if (!response.ok) {
-                throw new Error('Failed to save form')
-            }
-
-            const savedForm = await response.json()
-            formId = savedForm._id
-
-            toast.success(`Form ${formId ? 'updated' : 'saved'} successfully`);
-            router.push('/dashboard');
-        } catch (error) {
-            console.error('Error saving form:', error)
-            toast.error("Failed to save form to database");
-        } finally {
-            setIsSaving(false)
+      try {
+        setIsSaving(true);
+        const formData = prepareFormData();
+  
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/form/proposal-form`, {
+          method: formId === "new" ? 'POST' : 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+          credentials: 'include',
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to save form');
         }
-    }
+  
+        const savedForm = await response.json();
+        const newFormId = savedForm._id;
+        
+        if (formId === "new" && proposalData) {
+          const proposalResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/proposal/create`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title: proposalData.title,
+              description: proposalData.description,
+              investments: proposalData.investments,
+              formId: newFormId,
+              isPublic: proposalData.isPublic
+            }),
+          });
+          
+          if (!proposalResponse.ok) {
+            throw new Error('Failed to create proposal');
+          }
+          
+          const proposalResult = await proposalResponse.json();
+          console.log("Proposal created:", proposalResult);
+        }
+  
+        toast.success(`Form ${formId === "new" ? 'saved' : 'updated'} successfully`);
+        
+        if (formId === "new") {
+          router.push('/dashboard');
+        } else {
+          router.push(`/proposal-form/${newFormId}`);
+        }
+      } catch (error) {
+        console.error('Error saving form:', error);
+        toast.error("Failed to save form to database");
+      } finally {
+        setIsSaving(false);
+      }
+    };
 
   return (
     <div className="flex h-screen">
