@@ -460,9 +460,11 @@ export default function InvestorDashboard() {
                                             )
                                         })}
                                     </TableBody>
-                                </Table></>
+                                </Table>
+                                </>
 
                         )}
+                        <Button className="mt-[10px]" onClick={() => router.push(`/proposal-form/${selectedProposal.formId}`)}>Edit Form</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -479,7 +481,6 @@ export default function InvestorDashboard() {
                             <TabsTrigger value="grants">Grants</TabsTrigger>
                             <TabsTrigger value="applied-grants">Applied Grants</TabsTrigger>
                             <TabsTrigger value="pitches">Pitches</TabsTrigger>
-
                         </TabsList>
                     </div>
 
